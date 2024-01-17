@@ -7,7 +7,7 @@ from PIL import ImageTk,Image
 class Window(tkinter.Tk):
     def __init__(self):
         super().__init__()
-        self.title("")
+        self.title("MP3 Player")
         self.geometry('1450x800')
         self.configure(background = "gray")
         self.buttonImages = {}
