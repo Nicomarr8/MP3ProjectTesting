@@ -27,16 +27,14 @@ class Window(tkinter.Tk):
         music_directory = os.path.join(home_directory, "Music")
 
         music_directory_path = os.path.join(music_directory, "MP3_App")
-        self.directory = music_directory_path
 
         #Creates a folder in the Windows music directory
         if not os.path.exists(music_directory_path): 
             os.makedirs(music_directory_path)
 
         #Creates a text file to track the default directory
-        file_name = "SongDirectory.txt"
-        text_directory = os.path.join(music_directory_path, file_name)
-
+        text_directory = os.path.join(music_directory_path, "SongDirectory.txt")
+        
         # Check if the file exists in the directory
         if os.path.exists(text_directory) and os.path.isfile(text_directory):
             # Read the content of the file to determine the new directory
