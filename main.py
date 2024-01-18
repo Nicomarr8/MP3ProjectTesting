@@ -16,10 +16,11 @@ class Window(tkinter.Tk):
         self.frames = {}
         self.songs = []
         self.songButtons = []
+        self.likedSongs = {}
         self.idCounter = 0
         self.paused = True
         self.currentSong = 0
-        self.favorites_mode = False
+        self.likedMode = False
         self.loop = False
 
         #Creates a path to the user's local Music directory
@@ -58,7 +59,6 @@ class Window(tkinter.Tk):
         # default settings dictionary
         self.DEFAULT_SETTINGS = {
             "visual_theme": "default",
-            "liked_songs": [],
             "account_info": {
                 "username": None
             },
@@ -78,7 +78,10 @@ class Window(tkinter.Tk):
                 "developer": False,
                 "website": False,
                 # "Information about the app"
-                }
+                },
+            "likedSongs": {
+            },
+            "Directory":""
         }
         
         #Load settings at the beginning of your program
@@ -86,7 +89,6 @@ class Window(tkinter.Tk):
 
         # Access and update settings as needed
         self.visual_theme = self.current_settings["visual_theme"]
-        self.liked_songs = self.current_settings["liked_songs"]
         self.username = self.current_settings["account_info"]["username"]
         self.volume = self.current_settings["audio_settings"]["volume"]
         self.bass = self.current_settings["audio_settings"]["equalizer"]["bass"]
@@ -96,6 +98,10 @@ class Window(tkinter.Tk):
         self.app_version = self.current_settings["about_info"]["version"]
         self.developer = self.current_settings["about_info"]["developer"]
         self.website = self.current_settings["about_info"]["website"]
+        self.likedSongs = self.current_settings["likedSongs"]
+        #self.directory = self.current_settings["Directory"]
+        # the above line needs to be fixed so that it loads the directory and sets it and stuff
+        
 
         #frames
         self.frames["left"] = tkinter.Frame(self,bg = "#aaaaaa")
@@ -123,16 +129,10 @@ class Window(tkinter.Tk):
         self.genNextButton(0.4)
 
          #QueueListbox
-        self.createListbox()
+        #self.createListbox()
         #Listbox buttons
-        self.buttonListbox()
+        #self.buttonListbox()
         
-        #like
-        self.like=[]
-        like_button = tkinter.Button(self.frames["down"], text="Like",command=self.like_song, bg="white", activebackground="grey", fg="black").grid(row=3, column=0)
-        
-        #Favorites
-        self.favorites=[]
         fav_button = tkinter.Button(self.frames["down"], text="Favorites", command=self.display_liked_songs, bg="white", activebackground="grey", fg="black").grid(row=3, column=1)
         
         # seek bar
@@ -188,9 +188,6 @@ class Window(tkinter.Tk):
         # refresh to put everything in place
         self.refresh()
         self.loadSongs()
-        # Favorites
-        self.favorites=[]
-        #self.load_favorites()
         #self.load_songs()
         self.refresh ()
 
@@ -322,6 +319,7 @@ class Window(tkinter.Tk):
                         #This append function prevents the program from loading mp3 files that have no image, because each ID in the array must include a value for trackImage
                         self.songs.append({"id":self.idCounter,"Title":trackTitle,"Artist":trackArtist,"Album":trackAlbum,"Release":trackRD,"Image":trackImage,"Directory":self.directory+"//"+i,"Length":mp3.info.time_secs})
                         # print(mp3.info.time_secs, end = " | ")
+                        #self.current_settings["likededSongs"]
                         self.idCounter += 1
                 self.updateSongButtons()
                 if self.songs: self.queueSong(self.songs[0]["id"])              
@@ -335,7 +333,13 @@ class Window(tkinter.Tk):
         if self.songs:
             self.queueSong(self.songs[0]["id"])    
         
-   
+    def likeSong(self,song,button):
+        if button["text"] == "Like":
+            self.likedSongs[song["id"]] = song
+            button["text"] = "Unlike"
+        elif button["text"] == "Unlike":
+            self.likedSongs.pop(song["id"])
+            button["text"] = "Like"
 
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self):
@@ -343,8 +347,13 @@ class Window(tkinter.Tk):
             # self.text.window_create("end",window=tkinter.Button(text=f"Title: {self.songs[i]['Title']} | Artist: {self.songs[i]['Artist']} | Album: {self.songs[i]['Album']}",command=partial(self.queueSong, self.songs[i]["id"]), bg="white", activebackground="grey", fg="black"))
             # if (i < len(self.songs)-1): self.text.insert("end","\n")
             # self.songButtons.append(songbutton)
-            button = tkinter.Button(text=f"Title: {self.songs[i]['Title']} | Artist: {self.songs[i]['Artist']} | Album: {self.songs[i]['Album']}", command=partial(self.queueSong, self.songs[i]["id"]), bg="white", activebackground="grey", fg="black")
-            self.text.window_create("end", window=button)
+            dummyframe = tkinter.Frame()
+            button = tkinter.Button(dummyframe,text=f"Title: {self.songs[i]['Title']} | Artist: {self.songs[i]['Artist']} | Album: {self.songs[i]['Album']}", command=partial(self.queueSong, self.songs[i]["id"]), bg="white", activebackground="grey", fg="black")
+            likeButton = tkinter.Button(dummyframe,text="Like")
+            likeButton.config(command=partial(self.likeSong,self.songs[i],likeButton))
+            button.grid(row=0,column=0)
+            likeButton.grid(row=0,column=1)
+            self.text.window_create("end", window=dummyframe)
             if (i < len(self.songs) - 1):
                 self.text.insert("end", "\n")
         
@@ -392,7 +401,7 @@ class Window(tkinter.Tk):
             self.mixer.music.load(self.songQueued["Directory"])
             self.mixer.music.play()
             if self.paused: self.pause()
-            self.loadIntoListbox()
+            #self.loadIntoListbox()
 
     # load settings from the JSON file
     def load_settings(self):
@@ -612,6 +621,7 @@ class Window(tkinter.Tk):
     def tidyDestroy(self):
         self.seekUpdater._stop.set
         time.sleep(1)
+        # we could totally put a bunch of saving stuff in here, this is the function that closes everything
         self.destroy()
 
     #this is the function for the next and previous buttons
@@ -1077,20 +1087,6 @@ class Window(tkinter.Tk):
             if track["id"] in self.favorites:
                 tkinter.Button(self.frames["favorites"], text=f"Title: {track['Title']} | Artist: {track['Artist']} | Album: {track['Album']}",
                             command=partial(self.queueSong, track["id"]), bg="black", activebackground="grey", fg="white").grid(row=track["id"] + 1, column=0)
-
-    def like_song(self):
-        if not self.songQueued["id"] is None:
-            song_id = self.songQueued["id"]
-
-            # Check if the song is already in favorites
-        for song in self.favorites:
-            if song["id"] == song_id:
-                return ("Song in favorites")
-        for song in self.songs:
-            if song["id"] == song_id:
-                self.favorites.append(song)
-                self.save_settings(self.current_settings)
-                break
 
     # Display list of favorited songs when the 'Favorites' button is clicked
     def display_liked_songs(self):
