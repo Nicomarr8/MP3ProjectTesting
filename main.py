@@ -24,21 +24,18 @@ class Window(tkinter.Tk):
         self.loop = False
 
         #Creates a path to the user's local Music directory
-        new_directory = "MP3_App"
         home_directory = os.path.expanduser ("~")
         music_directory = os.path.join(home_directory, "Music")
 
-        music_directory_path = os.path.join(music_directory, new_directory)
-        self.directory = music_directory_path
+        music_directory_path = os.path.join(music_directory, "MP3_App")
 
         #Creates a folder in the Windows music directory
         if not os.path.exists(music_directory_path): 
             os.makedirs(music_directory_path)
 
         #Creates a text file to track the default directory
-        file_name = "SongDirectory.txt"
-        text_directory = os.path.join(music_directory_path, file_name)
-
+        text_directory = os.path.join(music_directory_path, "SongDirectory.txt")
+        
         # Check if the file exists in the directory
         if os.path.exists(text_directory) and os.path.isfile(text_directory):
             # Read the content of the file to determine the new directory
@@ -281,7 +278,7 @@ class Window(tkinter.Tk):
                             try:
                                 trackTitle = mp3.tag.title
                             except:
-                                trackTitle = "Unknown"
+                                trackTitle = self.songs[i]
                             try:
                                 trackArtist = mp3.tag.artist
                             except:
