@@ -295,9 +295,10 @@ class Window(tkinter.Tk):
                         else:
                             print("Error loading MP3")
                             
-                        if trackTitle == None: trackTitle = "Unknown"
-                        if trackArtist == None: trackArtist = "Unknown"
-                        if trackAlbum == None: trackAlbum = "Unknown"
+                        try: 
+                            print(mp3.info)
+                        except:
+                            pass
 
                         #this generates the imgs from the mp3s
                         try:
