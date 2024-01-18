@@ -23,11 +23,10 @@ class Window(tkinter.Tk):
         self.loop = False
 
         #Creates a path to the user's local Music directory
-        new_directory = "MP3_App"
         home_directory = os.path.expanduser ("~")
         music_directory = os.path.join(home_directory, "Music")
 
-        music_directory_path = os.path.join(music_directory, new_directory)
+        music_directory_path = os.path.join(music_directory, "MP3_App")
         self.directory = music_directory_path
 
         #Creates a folder in the Windows music directory
@@ -284,7 +283,7 @@ class Window(tkinter.Tk):
                             try:
                                 trackTitle = mp3.tag.title
                             except:
-                                trackTitle = "Unknown"
+                                trackTitle = self.songs[i]
                             try:
                                 trackArtist = mp3.tag.artist
                             except:
