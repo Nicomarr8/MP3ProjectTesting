@@ -131,7 +131,7 @@ class Window(tkinter.Tk):
         self.seekUpdater = self.updateSeek(self)
         self.seekUpdater.start()
         self.protocol("WM_DELETE_WINDOW",self.tidyDestroy)
-        self.mixer.init()    
+        self.mixer.init()
         self.shuffle_dict = {}
 
         # Add a "Shuffle" button to your GUI
