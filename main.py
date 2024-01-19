@@ -1,4 +1,4 @@
-import time, tkinter, json, eyed3, pygame, os, threading, random
+import time, tkinter, eyed3, pygame, os, threading, random, json
 from tkinter import ttk
 from tkinter import filedialog
 from functools import partial
@@ -59,13 +59,7 @@ class Window(tkinter.Tk):
             "account_info": {
                 "username": None
             },
-            "audio_settings": {
-                "volume": 50,
-                "equalizer": {
-                    "bass": 0,
-                    "treble": 0
-                }
-            },
+            "volume": 50,
             "preferences": {
                 "language": "English",
                 "notifications": True
@@ -73,37 +67,34 @@ class Window(tkinter.Tk):
             "about_info": {
                 "version": 0,
                 "developer": False,
-                "website": False,
                 # "Information about the app"
                 },
             "likedSongs": {
             },
             "Directory":""
         }
-        
-        #Load settings at the beginning of your program
-        self.current_settings = self.load_settings()
-
-        # Access and update settings as needed
-        self.visual_theme = self.current_settings["visual_theme"]
-        self.username = self.current_settings["account_info"]["username"]
-        self.volume = self.current_settings["audio_settings"]["volume"]
-        self.bass = self.current_settings["audio_settings"]["equalizer"]["bass"]
-        self.treble = self.current_settings["audio_settings"]["equalizer"]["treble"]
-        self.language = self.current_settings["preferences"]["language"]
-        self.notifications = self.current_settings["preferences"]["notifications"]
-        self.app_version = self.current_settings["about_info"]["version"]
-        self.developer = self.current_settings["about_info"]["developer"]
-        self.website = self.current_settings["about_info"]["website"]
-        self.likedSongs = self.current_settings["likedSongs"]
-        #self.directory = self.current_settings["Directory"]
-        # the above line needs to be fixed so that it loads the directory and sets it and stuff
-        
 
         #frames
         self.frames["left"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["right"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["down"] = tkinter.Frame(self,bg = "#5a87d0")
+        
+        #Load settings at the beginning of your program
+        self.current_settings = self.load_settings()
+        # Volume slider
+        self.volume= tkinter.Scale(self.frames["down"], from_=0, to =100, orient="horizontal", command=self.setVolume, label="Volume")
+
+        # Access and update settings as needed
+        self.visual_theme = self.current_settings["visual_theme"]
+        self.username = self.current_settings["account_info"]["username"]
+        self.volume.set(self.current_settings["volume"])
+        self.language = self.current_settings["preferences"]["language"]
+        self.notifications = self.current_settings["preferences"]["notifications"]
+        self.app_version = self.current_settings["about_info"]["version"]
+        self.developer = self.current_settings["about_info"]["developer"]
+        self.likedSongs = self.current_settings["likedSongs"]
+        #self.directory = self.current_settings["Directory"]
+        # the above line needs to be fixed so that it loads the directory and sets it and stuff
 
         #stylize the scrollbar with witchcraft and wizardry
         style=ttk.Style()
@@ -142,10 +133,6 @@ class Window(tkinter.Tk):
         self.protocol("WM_DELETE_WINDOW",self.tidyDestroy)
         self.mixer.init()    
         self.shuffle_dict = {}
-
-        # Volume slider
-        self.volume= tkinter.Scale(self.frames["down"], from_=0, to =100, orient="horizontal", command=self.setVolume, label="Volume")
-        self.volume.set(50)
 
         # Add a "Shuffle" button to your GUI
         shuffle_button = tkinter.Button(self.frames["down"], text="Shuffle", command=self.shuffle_songs)
@@ -404,25 +391,25 @@ class Window(tkinter.Tk):
     # load settings from the JSON file
     def load_settings(self):
         try:
-            with open('settings.json', 'r') as file:
+            with open(self.directory + '/settings.json', 'r') as file:
                 settings = json.load(file)
         except FileNotFoundError:
             settings = self.DEFAULT_SETTINGS
         return settings
 
     # Save settings to the JSON file
-    def save_settings(self,settings):
-        with open('settings.json', 'w') as file:
-            json.dump(settings, file, indent=4)
+    def save_settings(self):
+        self.current_settings["visual_theme"] = self.visual_theme 
+        self.current_settings["account_info"]["username"] = self.username
+        self.current_settings["volume"] = self.volume.get()
+        self.current_settings["preferences"]["language"] = self.language
+        self.current_settings["preferences"]["notifications"] = self.notifications
+        self.current_settings["about_info"]["version"] = self.app_version
+        self.current_settings["about_info"]["developer"] = self.developer
+        self.current_settings["likedSongs"] = self.likedSongs
+        with open(self.directory + '/settings.json', 'w') as file:
+            json.dump(self.current_settings,file)
 
-    # Function to change settings
-    def change_settings(self,new_settings):
-        for key, value in new_settings.items():
-            if key in self.current_settings:
-                self.current_settings[key] = value
-            else:
-                print(f"Invalid setting: {key}")
-    
     #a thread to update the seek bar every second
     class updateSeek(threading.Thread):
         def __init__(self,parent):
@@ -617,6 +604,7 @@ class Window(tkinter.Tk):
 
     #the is run on the X being clicked so that the threads are properly shut down with the window
     def tidyDestroy(self):
+        self.save_settings()
         self.seekUpdater._stop.set
         time.sleep(1)
         # we could totally put a bunch of saving stuff in here, this is the function that closes everything
