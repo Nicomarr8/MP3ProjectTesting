@@ -16,7 +16,7 @@ class Window(tkinter.Tk):
         self.frames = {}
         self.songs = []
         self.songButtons = []
-        self.likedSongs = []
+        self.playlists = {"likedsongs":[]}
         self.idCounter = 0
         self.paused = True
         self.currentSong = 0
@@ -69,7 +69,7 @@ class Window(tkinter.Tk):
                 "developer": False,
                 # "Information about the app"
                 },
-            "likedSongs": [],
+            "Playlists": {"Likedsongs":[]},
             "Directory":""
         }
 
@@ -91,7 +91,7 @@ class Window(tkinter.Tk):
         self.notifications = self.current_settings["preferences"]["notifications"]
         self.app_version = self.current_settings["about_info"]["version"]
         self.developer = self.current_settings["about_info"]["developer"]
-        self.likedSongs = self.current_settings["likedSongs"]
+        self.playlists = self.current_settings["Playlists"]
         #self.directory = self.current_settings["Directory"]
         # the above line needs to be fixed so that it loads the directory and sets it and stuff
 
@@ -143,8 +143,7 @@ class Window(tkinter.Tk):
         self.tabButtons = tkinter.Frame(self.frames["right"])
         self.tabs = []
         self.tabs.append(tkinter.Button(self.tabButtons,text="Songs",command=partial(self.loadSongsIntoFrame,self.songs)))
-        self.tabs.append(tkinter.Button(self.tabButtons,text="Liked Songs",command=partial(self.loadSongsIntoFrame,self.likedSongs))) #make this a playlist you dumbass
-        self.tabs.append(tkinter.Button(self.tabButtons,text="Playlists"))
+        self.tabs.append(tkinter.Button(self.tabButtons,text="Playlists", command=self.loadPlaylistsIntoFrame))
         self.tabs.append(tkinter.Button(self.tabButtons,text="Search"))
 
         self.loopButton = tkinter.Button(self.frames["down"],text="Enable Loop",command=self.toggleLoop)
@@ -195,6 +194,22 @@ class Window(tkinter.Tk):
         # Update the search results
         self.filtered_songs = []
         self.update_search_results()
+
+    def loadPlaylistsIntoFrame(self):
+        self.removeButtons()
+        self.songButtons.clear()
+        for i in self.playlists.keys():
+            button = tkinter.Button(text=i,command=partial(self.loadSongsIntoFrame,self.playlists[i]))
+            self.text.window_create("end",window=button)
+            self.text.insert("end", "\n")
+            self.songButtons.append(button)
+        button = tkinter.Button(text="New Playlist",command=self.newPlaylist)
+        self.text.window_create("end",window=button)
+        self.text.insert("end", "\n")
+        self.songButtons.append(button)
+
+    def newPlaylist(self):
+        pass
 
     def search_song(self):
         query = self.search_entry.get().strip().lower()
@@ -314,10 +329,10 @@ class Window(tkinter.Tk):
         
     def likeSong(self,song,button):
         if button["text"] == "Like":
-            self.likedSongs.append(song)
+            self.playlists["likedSongs"].append(song)
             button["text"] = "Unlike"
         elif button["text"] == "Unlike":
-            self.likedSongs.remove(song)
+            self.playlists["likedSongs"].remove(song)
             button["text"] = "Like"
 
     #loads songs into the right frame tkinter frame
@@ -327,7 +342,7 @@ class Window(tkinter.Tk):
         for i in range(len(songlist)):
             dummyframe = tkinter.Frame()
             button = tkinter.Button(dummyframe,text=f"Title: {songlist[i]['Title']} | Artist: {songlist[i]['Artist']} | Album: {songlist[i]['Album']}", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black")
-            if songlist[i] in self.likedSongs:
+            if songlist[i] in self.playlists["likedSongs"]:
                 likeButton = tkinter.Button(dummyframe,text="Unlike")
             else:
                 likeButton = tkinter.Button(dummyframe,text="Like")
@@ -337,7 +352,7 @@ class Window(tkinter.Tk):
             self.text.window_create("end", window=dummyframe)
             if (i < len(songlist) - 1):
                 self.text.insert("end", "\n")
-        
+
             # Append the button to the songButtons array
             self.songButtons.append(button)
 
@@ -402,7 +417,7 @@ class Window(tkinter.Tk):
         self.current_settings["preferences"]["notifications"] = self.notifications
         self.current_settings["about_info"]["version"] = self.app_version
         self.current_settings["about_info"]["developer"] = self.developer
-        self.current_settings["likedSongs"] = self.likedSongs
+        self.current_settings["Playlists"] = self.playlists
         with open(self.directory + '/settings.json', 'w') as file:
             json.dump(self.current_settings,file)
 
