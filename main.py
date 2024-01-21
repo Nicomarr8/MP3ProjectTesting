@@ -76,7 +76,7 @@ class Window(tkinter.Tk):
         #frames
         self.frames["left"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["right"] = tkinter.Frame(self,bg = "#aaaaaa")
-        self.frames["down"] = tkinter.Frame(self,bg = "#5a87d0")
+        self.frames["down"] = tkinter.Frame(self,bg = "#888888")
         
         #Load settings at the beginning of your program
         self.current_settings = self.load_settings()
@@ -133,7 +133,7 @@ class Window(tkinter.Tk):
 
         # Add a "Shuffle" button to your GUI
         shuffle_button = tkinter.Button(self.frames["down"], text="Shuffle", command=self.shuffle_songs)
-        shuffle_button.grid(row=5, column=1)
+        shuffle_button.grid(row=0, column=6)
 
         #tag information stuff
         self.tagInfo = tkinter.Label(self.frames["down"],font=("Roboto Mono",14, "bold"))
@@ -144,7 +144,7 @@ class Window(tkinter.Tk):
         self.tabs = []
         self.tabs.append(tkinter.Button(self.tabButtons,text="Songs",command=partial(self.loadSongsIntoFrame,self.songs)))
         self.tabs.append(tkinter.Button(self.tabButtons,text="Playlists", command=self.loadPlaylistsIntoFrame))
-        self.tabs.append(tkinter.Button(self.tabButtons,text="Search"))
+        self.tabs.append(tkinter.Button(self.tabButtons,text="Search", command=self.loadSearchIntoFrame))
 
         self.loopButton = tkinter.Button(self.frames["down"],text="Enable Loop",command=self.toggleLoop)
 
@@ -163,15 +163,15 @@ class Window(tkinter.Tk):
                 with open(text_directory, 'w') as text:
                     text.write(self.directory)
 
-            self.ListboxRemoveOldSongs()
+            #self.ListboxRemoveOldSongs()
             self.loadSongs()
 
-            self.ListboxHighlightPlaying()
+            #self.ListboxHighlightPlaying()
             #self.Queue_listbox.selection_clear(0,tkinter.END)
             #self.currentSong = 0
            # self.Queue_listbox.selection_set(self.currentSong)
 
-        tkinter.Button(self.frames["down"], text = "Select Directory", command = select_directory).grid(row=5, column=0)
+        tkinter.Button(self.frames["down"], text = "Select Directory", command = select_directory).grid(row=0, column=5)
         
         # refresh to put everything in place
         self.refresh()
@@ -180,20 +180,10 @@ class Window(tkinter.Tk):
 
 
         #there should be a set directory button for the whole application
-        # Search bar and search button
-        self.search_entry = tkinter.Entry(self.frames["down"], width=20)
-        self.search_entry.grid(row=0, column=7, padx=5)
-        self.search_button = tkinter.Button(self.frames["down"], text="Search", command=self.search_song)
-        self.search_button.grid(row=0, column=8, padx=5)
-
-        # Search results listbox
-        self.search_results = tkinter.Listbox(self.frames["down"], selectmode=tkinter.SINGLE, height=10)
-        self.search_results.grid(row=1, column=7, columnspan=2, padx=5)
-        self.search_results.bind("<<ListboxSelect>>", self.select_song)
 
         # Update the search results
         self.filtered_songs = []
-        self.update_search_results()
+        #self.update_search_results()
 
     def loadPlaylistsIntoFrame(self):
         self.removeButtons()
@@ -210,6 +200,22 @@ class Window(tkinter.Tk):
 
     def newPlaylist(self):
         pass
+
+    def loadSearchIntoFrame(self):
+        self.removeButtons()
+        self.songButtons.clear()
+        # Search bar and search button
+        dummyFrame = tkinter.Frame()
+        self.search_entry = tkinter.Entry(dummyFrame, width=20)
+        self.search_entry.grid(row=0, column=0, padx=5)
+        self.search_button = tkinter.Button(dummyFrame, text="Search", command=self.search_song)
+        self.search_button.grid(row=0, column=1, padx=5)
+
+        # Search results listbox
+        self.search_results = tkinter.Listbox(dummyFrame, selectmode=tkinter.SINGLE, height=10)
+        self.search_results.grid(row=1, column=0, columnspan=2, padx=5)
+        self.search_results.bind("<<ListboxSelect>>", self.select_song)
+        self.text.window_create("end",window=dummyFrame)
 
     def search_song(self):
         query = self.search_entry.get().strip().lower()
@@ -442,7 +448,7 @@ class Window(tkinter.Tk):
             self.frames[list(self.frames)[i]].grid_remove()
 
         #frames
-        for i in range(8):
+        for i in range(6):
             self.rowconfigure(i,weight=1, uniform='row')
         for i in range(2):
             self.columnconfigure(i,weight=1,uniform='column')
@@ -456,28 +462,28 @@ class Window(tkinter.Tk):
         self.frames["right"].grid(row=0, column=1, padx=0, sticky="nsew",rowspan=5)
         self.frames["right"].grid_rowconfigure(1, weight=1)
         self.frames["right"].grid_columnconfigure(0, weight=1)
-        self.frames["down"].grid(row=5, column=0, rowspan=3,columnspan=2, padx=0, pady=1, sticky="nsew")
+        self.frames["down"].grid(row=5, column=0, rowspan=1,columnspan=2, padx=0, pady=1, sticky="nsew")
         
         for i in range(7):
             self.frames["down"].grid_columnconfigure(i, weight=1,uniform="column")
-        for i in range(6):
+        for i in range(2):
             self.frames["down"].grid_rowconfigure(i, weight=1)
 
         self.text.grid(row=1,column=0,sticky="nsew",pady=(0,20))
         self.scrollbar.grid(row=1,column=1,sticky="nsew")
 
         #tag info
-        self.tagInfo.grid(row=0,column=0,columnspan=7, sticky="nsew")
+        self.tagInfo.grid(row=0,column=0,columnspan=4, sticky="nsew")
 
         #Images
         self.refreshCanvases()
 
         #seek bar
-        self.seek.grid(row=1, column=0,columnspan=4,sticky="nsew")
+        self.seek.grid(row=1, column=3,columnspan=3,sticky="nsew")
         
         #volume slider
-        self.volume.grid(row=1, column=4,columnspan=3,sticky="nsew")
-        self.loopButton.grid(row=5,column=2)
+        self.volume.grid(row=1, column=6,columnspan=2,sticky="nsew")
+        self.loopButton.grid(row=0,column=7)
 
         self.tabButtons.grid(row=0,column=0,columnspan=2,sticky="nsew")
         self.tabButtons.grid_rowconfigure(0,weight=1)
@@ -500,7 +506,7 @@ class Window(tkinter.Tk):
         
         self.canvasAlbum.grid(row=1,column=1)
         for i in range(len(self.canvases)):
-            self.canvases[list(self.canvases)[i]].grid(row=2,column=i,pady=2)
+            self.canvases[list(self.canvases)[i]].grid(row=1,column=i,pady=2)
 
     #generates the play/pause button image
     def genPausePlayButton(self,factor):
@@ -562,7 +568,7 @@ class Window(tkinter.Tk):
         self.canvases["prev"] = tkinter.Canvas(self.frames["down"],width=100*factor,height=100*factor,background="SystemButtonFace",borderwidth=2,relief="raised")
         self.canvases["prev"].create_polygon([85*factor,25*factor,45*factor,50*factor,85*factor,80*factor],outline="black",fill="white",width=2)
         self.canvases["prev"].create_rectangle(20*factor,25*factor,30*factor,80*factor,outline="black",fill="white",width=2)
-        self.canvases["prev"].grid(row=0,column=0)
+        #self.canvases["prev"].grid(row=0,column=0)
         #function for pressing the previous button
         def onClick(event):
             event.widget.configure(relief="sunken")
