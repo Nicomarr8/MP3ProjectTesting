@@ -16,7 +16,7 @@ class Window(tkinter.Tk):
         self.frames = {}
         self.songs = []
         self.songButtons = []
-        self.playlists = {"likedsongs":[]}
+        self.playlists = {"likedSongs":[]}
         self.idCounter = 0
         self.paused = True
         self.currentSong = 0
@@ -69,7 +69,7 @@ class Window(tkinter.Tk):
                 "developer": False,
                 # "Information about the app"
                 },
-            "Playlists": {"Likedsongs":[]},
+            "Playlists": {"likedSongs":[]},
             "Directory":""
         }
 
@@ -190,17 +190,44 @@ class Window(tkinter.Tk):
         self.removeButtons()
         self.songButtons.clear()
         for i in self.playlists.keys():
-            button = tkinter.Button(text=i,command=partial(self.loadSongsIntoFrame,self.playlists[i]))
-            self.text.window_create("end",window=button)
+            dummyFrame = tkinter.Frame()
+            button = tkinter.Button(dummyFrame,text=i,command=partial(self.loadSongsIntoFrame,self.playlists[i]))
+            button.grid(row=0,column=0)
+            if button['text'] != "likedSongs":
+                deleteButton = tkinter.Button(dummyFrame,text="Delete Playlist",command=partial(self.deletePlaylist,i))
+                deleteButton.grid(row=0,column=1)
+            self.text.window_create("end",window=dummyFrame)
             self.text.insert("end", "\n")
             self.songButtons.append(button)
-        button = tkinter.Button(text="New Playlist",command=self.newPlaylist)
+        button = tkinter.Button(text="New Playlist",command=partial(self.newPlaylist,self))
         self.text.window_create("end",window=button)
         self.text.insert("end", "\n")
         self.songButtons.append(button)
 
-    def newPlaylist(self):
-        pass
+    def deletePlaylist(self,name):
+        self.playlists.pop(name)
+        self.loadPlaylistsIntoFrame()
+
+
+    class newPlaylist(tkinter.Toplevel):
+        def __init__(self, parent):
+            super().__init__()
+            self.title("Create a New Playlist")
+            self.geometry("650x200")
+            name = tkinter.Text(self,height=1) #please change this so it's not hardcoded a height
+            name.grid(row=0,column=0)
+            createButton = tkinter.Button(self,text="Create Playlist",command=partial(self.createPlaylist,name,parent))
+            createButton.grid(row=1,column=0)
+
+        def createPlaylist(self,name,parent):
+            nameText = name.get(1.0,"end-1c")
+            if nameText in list(parent.playlists.keys()):
+                pass # error handle this eventually
+            else:
+                parent.playlists[nameText] = []
+            parent.loadPlaylistsIntoFrame()
+            self.destroy()
+
 
     def loadSearchIntoFrame(self):
         self.removeButtons()
