@@ -211,7 +211,6 @@ class Window(tkinter.Tk):
         self.playlists.pop(name)
         self.loadPlaylistsIntoFrame()
 
-
     class newPlaylist(tkinter.Toplevel):
         def __init__(self, parent):
             super().__init__()
@@ -230,7 +229,6 @@ class Window(tkinter.Tk):
                 parent.playlists[nameText] = []
             parent.loadPlaylistsIntoFrame()
             self.destroy()
-
 
     def loadSearchIntoFrame(self):
         self.text["state"] = "normal"
@@ -257,9 +255,9 @@ class Window(tkinter.Tk):
         self.text["state"] = "disabled"
 
     def search_song(self):
-        query = self.search_entry.get().strip().lower()
+        query = self.search_entry.get().strip()
         if query:
-            self.filtered_songs = [song for song in self.songs if query in song["Title"].lower()]
+            self.filtered_songs = [song for song in self.songs if query in song["Title"]]
         else:
             self.filtered_songs = self.songs
         self.update_search_results()
@@ -279,7 +277,6 @@ class Window(tkinter.Tk):
         self.shuffle = not self.shuffle
         if self.shuffle: self.shuffle_button["text"] = "Disable Shuffle" 
         else: self.shuffle_button["text"] = "Enable Shuffle"
-
 
     # def shuffle_songs(self):
     #     random.shuffle(self.songs)
