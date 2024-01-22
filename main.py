@@ -106,14 +106,15 @@ class Window(tkinter.Tk):
         self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="grey")
         self.genAlbumIcon(2)
 
+        self.buttonFactor = 0.4
         #prev button
-        self.genPrevButton(0.4)
+        self.genPrevButton(self.buttonFactor)
 
         #play button
-        self.genPausePlayButton(0.4)
+        self.genPausePlayButton(self.buttonFactor)
 
         #next button
-        self.genNextButton(0.4)
+        self.genNextButton(self.buttonFactor)
 
          #QueueListbox
         #self.createListbox()
@@ -133,7 +134,7 @@ class Window(tkinter.Tk):
 
         # Add a "Shuffle" button to your GUI
         shuffle_button = tkinter.Button(self.frames["down"], text="Shuffle", command=self.shuffle_songs)
-        shuffle_button.grid(row=0, column=6)
+        shuffle_button.grid(row=0, column=4,sticky="nsew")
 
         #tag information stuff
         self.tagInfo = tkinter.Label(self.frames["down"],font=("Roboto Mono",14, "bold"))
@@ -171,7 +172,7 @@ class Window(tkinter.Tk):
             #self.currentSong = 0
            # self.Queue_listbox.selection_set(self.currentSong)
 
-        tkinter.Button(self.frames["down"], text = "Select Directory", command = select_directory).grid(row=0, column=5)
+        tkinter.Button(self.frames["down"], text = "Select Directory", command = select_directory).grid(row=0, column=3,sticky="nsew")
         
         # refresh to put everything in place
         self.refresh()
@@ -459,31 +460,31 @@ class Window(tkinter.Tk):
         self.frames["left"].grid_columnconfigure(1, weight=1)
         self.frames["left"].grid_rowconfigure(2, weight=1)
         self.frames["left"].grid_columnconfigure(2, weight=1)
-        self.frames["right"].grid(row=0, column=1, padx=0, sticky="nsew",rowspan=5)
+        self.frames["right"].grid(row=0, column=1, sticky="nsew",rowspan=5)
         self.frames["right"].grid_rowconfigure(1, weight=1)
         self.frames["right"].grid_columnconfigure(0, weight=1)
-        self.frames["down"].grid(row=5, column=0, rowspan=1,columnspan=2, padx=0, pady=1, sticky="nsew")
+        self.frames["down"].grid(row=5, column=0, rowspan=1,columnspan=2, sticky="nsew")
         
-        for i in range(7):
+        for i in range(6):
             self.frames["down"].grid_columnconfigure(i, weight=1,uniform="column")
-        for i in range(2):
+        for i in range(3):
             self.frames["down"].grid_rowconfigure(i, weight=1)
 
         self.text.grid(row=1,column=0,sticky="nsew",pady=(0,20))
         self.scrollbar.grid(row=1,column=1,sticky="nsew")
 
         #tag info
-        self.tagInfo.grid(row=0,column=0,columnspan=4, sticky="nsew")
+        self.tagInfo.grid(row=1,column=0, rowspan=2,columnspan=2, sticky="nsew")
 
         #Images
         self.refreshCanvases()
 
         #seek bar
-        self.seek.grid(row=1, column=3,columnspan=3,sticky="nsew")
+        self.seek.grid(row=1, column=2,rowspan=2,columnspan=3,sticky="nsew")
         
         #volume slider
-        self.volume.grid(row=1, column=6,columnspan=2,sticky="nsew")
-        self.loopButton.grid(row=0,column=7)
+        self.volume.grid(row=1, column=5,rowspan=2,columnspan=2,sticky="nsew")
+        self.loopButton.grid(row=0,column=5,sticky="nsew")
 
         self.tabButtons.grid(row=0,column=0,columnspan=2,sticky="nsew")
         self.tabButtons.grid_rowconfigure(0,weight=1)
@@ -506,7 +507,7 @@ class Window(tkinter.Tk):
         
         self.canvasAlbum.grid(row=1,column=1)
         for i in range(len(self.canvases)):
-            self.canvases[list(self.canvases)[i]].grid(row=1,column=i,pady=2)
+            self.canvases[list(self.canvases)[i]].grid(row=0,column=i,sticky="nsew")
 
     #generates the play/pause button image
     def genPausePlayButton(self,factor):
