@@ -283,13 +283,6 @@ class Window(tkinter.Tk):
         if self.shuffle: self.shuffle_button["text"] = "Disable Shuffle" 
         else: self.shuffle_button["text"] = "Enable Shuffle"
 
-    # def shuffle_songs(self):
-    #     random.shuffle(self.songs)
-    #     self.shuffle_dict = {i: song["id"] for i, song in enumerate(self.songs)}
-    #     self.loadSongsIntoFrame(self.songs)
-    #     if self.songs:
-    #         self.queueSong(self.songs[0]["id"])
-
     def toggleLoop(self):
         self.loop = not self.loop
         if self.loop: self.loopButton.config(text="Disable Loop")
