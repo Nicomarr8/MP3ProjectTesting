@@ -27,14 +27,14 @@ class Window(tkinter.Tk):
         home_directory = os.path.expanduser ("~")
         music_directory = os.path.join(home_directory, "Music")
 
-        music_directory_path = os.path.join(music_directory, "MP3_App")
+        self.music_directory_path = os.path.join(music_directory, "MP3_App")
 
         #Creates a folder in the Windows music directory
-        if not os.path.exists(music_directory_path): 
-            os.makedirs(music_directory_path)
+        if not os.path.exists(self.music_directory_path): 
+            os.makedirs(self.music_directory_path)
 
         #Creates a text file to track the default directory
-        text_directory = os.path.join(music_directory_path, "SongDirectory.txt")
+        text_directory = os.path.join(self.music_directory_path, "SongDirectory.txt")
         
         # Check if the file exists in the directory
         if os.path.exists(text_directory) and os.path.isfile(text_directory):
@@ -44,10 +44,10 @@ class Window(tkinter.Tk):
                 if (os.path.exists(TrackDirectory)):
                     self.directory = TrackDirectory
                 else:
-                    self.directory = music_directory_path
+                    self.directory = self.music_directory_path
         else:
             # If the file doesn't exist, set 'self.directory' to 'music_directory_path'
-            self.directory = music_directory_path
+            self.directory = self.music_directory_path
             # Create a new SongDirectory.txt file and write 'self.directory' to it
             with open(text_directory, 'w') as text:
                 text.write(self.directory)
@@ -447,7 +447,7 @@ class Window(tkinter.Tk):
     # load settings from the JSON file
     def load_settings(self):
         try:
-            with open(self.directory + '/settings.json', 'r') as file:
+            with open(self.music_directory_path + '/settings.json', 'r') as file:
                 settings = json.load(file)
         except FileNotFoundError:
             settings = self.DEFAULT_SETTINGS
