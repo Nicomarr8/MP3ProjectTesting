@@ -78,6 +78,7 @@ class Window(tkinter.Tk):
         self.frames["left"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["right"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["down"] = tkinter.Frame(self,bg = "#888888")
+        self.bind('<Visibility>',self.initializeSongs)
         
         #Load settings at the beginning of your program
         self.current_settings = self.load_settings()
@@ -187,6 +188,10 @@ class Window(tkinter.Tk):
         self.filtered_songs = []
         #self.update_search_results()
 
+    def initializeSongs(self,event):
+        self.loadSongsIntoFrame(self.songs)
+        self.unbind('<Visibility>')
+
     def loadPlaylistsIntoFrame(self):
         self.text["state"] = "normal"
         self.removeButtons()
@@ -230,7 +235,6 @@ class Window(tkinter.Tk):
                 parent.playlists[nameText] = []
             parent.loadPlaylistsIntoFrame()
             self.destroy()
-
 
     def loadSearchIntoFrame(self):
         self.text["state"] = "normal"
@@ -279,14 +283,6 @@ class Window(tkinter.Tk):
         self.shuffle = not self.shuffle
         if self.shuffle: self.shuffle_button["text"] = "Disable Shuffle" 
         else: self.shuffle_button["text"] = "Enable Shuffle"
-
-
-    # def shuffle_songs(self):
-    #     random.shuffle(self.songs)
-    #     self.shuffle_dict = {i: song["id"] for i, song in enumerate(self.songs)}
-    #     self.loadSongsIntoFrame(self.songs)
-    #     if self.songs:
-    #         self.queueSong(self.songs[0]["id"])
 
     def toggleLoop(self):
         self.loop = not self.loop
@@ -426,6 +422,7 @@ class Window(tkinter.Tk):
             button.grid(row=0,column=0,sticky="nsew")
             playlistButton.grid(row=0,column=1,sticky="nsew")
             dummyframe.grid_propagate(0)
+            print(self.text.winfo_width(),self.text.winfo_height())
             dummyframe["width"] = self.text.winfo_width()
             dummyframe["height"] = self.text.winfo_height()/20
             self.text.window_create("end", window=dummyframe)
