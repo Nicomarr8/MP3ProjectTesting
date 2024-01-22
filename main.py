@@ -78,6 +78,7 @@ class Window(tkinter.Tk):
         self.frames["left"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["right"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["down"] = tkinter.Frame(self,bg = "#888888")
+        self.bind('<Visibility>',self.initializeSongs)
         
         #Load settings at the beginning of your program
         self.current_settings = self.load_settings()
@@ -186,6 +187,10 @@ class Window(tkinter.Tk):
         # Update the search results
         self.filtered_songs = []
         #self.update_search_results()
+
+    def initializeSongs(self,event):
+        self.loadSongsIntoFrame(self.songs)
+        self.unbind('<Visibility>')
 
     def loadPlaylistsIntoFrame(self):
         self.text["state"] = "normal"
@@ -423,6 +428,7 @@ class Window(tkinter.Tk):
             button.grid(row=0,column=0,sticky="nsew")
             playlistButton.grid(row=0,column=1,sticky="nsew")
             dummyframe.grid_propagate(0)
+            print(self.text.winfo_width(),self.text.winfo_height())
             dummyframe["width"] = self.text.winfo_width()
             dummyframe["height"] = self.text.winfo_height()/20
             self.text.window_create("end", window=dummyframe)
