@@ -102,7 +102,7 @@ class Window(tkinter.Tk):
         style.theme_use('classic')
         style.configure("Vertical.TScrollbar", background="grey", bordercolor="black", arrowcolor="white")
         self.scrollbar = ttk.Scrollbar(self.frames["right"], orient="vertical")
-        self.text = tkinter.Text(self.frames["right"],yscrollcommand=self.scrollbar.set,bg = "#aaaaaa")
+        self.text = tkinter.Text(self.frames["right"],yscrollcommand=self.scrollbar.set,bg = "#aaaaaa",state="disabled")
         self.scrollbar.config(command=self.text.yview)
         #album default icon
         self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="grey")
@@ -179,7 +179,7 @@ class Window(tkinter.Tk):
         # refresh to put everything in place
         self.refresh()
         self.loadSongs()
-        self.refresh ()
+        #self.refresh ()
 
         #there should be a set directory button for the whole application
 
@@ -188,6 +188,7 @@ class Window(tkinter.Tk):
         #self.update_search_results()
 
     def loadPlaylistsIntoFrame(self):
+        self.text["state"] = "normal"
         self.removeButtons()
         self.songButtons.clear()
         for i in self.playlists.keys():
@@ -204,6 +205,7 @@ class Window(tkinter.Tk):
         self.text.window_create("end",window=button)
         self.text.insert("end", "\n")
         self.songButtons.append(button)
+        self.text["state"] = "disabled"
 
     def deletePlaylist(self,name):
         self.playlists.pop(name)
@@ -231,13 +233,14 @@ class Window(tkinter.Tk):
 
 
     def loadSearchIntoFrame(self):
+        self.text["state"] = "normal"
         self.removeButtons()
         self.songButtons.clear()
         # Search bar and search button
         dummyFrame = tkinter.Frame()
         dummyFrame.grid_columnconfigure(0,weight=1)
         dummyFrame.grid_columnconfigure(1,weight=1)
-        dummyFrame.grid_rowconfigure(0,weight=1)
+        dummyFrame.grid_rowconfigure(1,weight=1)
         self.search_entry = tkinter.Entry(dummyFrame)
         self.search_entry.grid(row=0, column=0, sticky="nsew")
         self.search_button = tkinter.Button(dummyFrame, text="Search", command=self.search_song)
@@ -247,7 +250,11 @@ class Window(tkinter.Tk):
         self.search_results = tkinter.Listbox(dummyFrame, selectmode=tkinter.SINGLE)
         self.search_results.grid(row=1, column=0, columnspan=2,sticky="nsew")
         self.search_results.bind("<<ListboxSelect>>", self.select_song)
+        dummyFrame.grid_propagate(0)
+        dummyFrame["width"] = self.text.winfo_width()
+        dummyFrame["height"] = self.text.winfo_height()
         self.text.window_create("end",window=dummyFrame)
+        self.text["state"] = "disabled"
 
     def search_song(self):
         query = self.search_entry.get().strip().lower()
@@ -404,23 +411,30 @@ class Window(tkinter.Tk):
 
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self,songlist = []):
+        self.text["state"] = "normal"
         self.removeButtons()
         self.songButtons.clear()
         for i in range(len(songlist)):
             dummyframe = tkinter.Frame()
+            dummyframe.grid_columnconfigure(0,weight=1)
+            dummyframe.grid_columnconfigure(1,weight=1)
+            dummyframe.grid_rowconfigure(0,weight=1)
             button = tkinter.Button(dummyframe,text=f"Title: {songlist[i]['Title']} | Artist: {songlist[i]['Artist']} | Album: {songlist[i]['Album']}", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black")
             if songlist[i] not in self.songs:
                 button["state"] = "disabled"
             playlistButton = tkinter.Button(dummyframe,text="Add to Playlist",command=partial(self.selectPlaylist,songlist[i],self.playlists))
-            button.grid(row=0,column=0)
-            playlistButton.grid(row=0,column=1)
+            button.grid(row=0,column=0,sticky="nsew")
+            playlistButton.grid(row=0,column=1,sticky="nsew")
+            dummyframe.grid_propagate(0)
+            dummyframe["width"] = self.text.winfo_width()
+            dummyframe["height"] = self.text.winfo_height()/20
             self.text.window_create("end", window=dummyframe)
             if (i < len(songlist) - 1):
                 self.text.insert("end", "\n")
 
             # Append the button to the songButtons array
             self.songButtons.append(button)
-
+        self.text["state"] = "disabled"
 
         #self.songs = [song for song in self.songs if song in self.favorites]
 
