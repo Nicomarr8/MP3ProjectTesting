@@ -22,6 +22,7 @@ class Window(tkinter.Tk):
         self.currentSong = 0
         self.likedMode = False
         self.loop = False
+        self.shuffle = False
 
         #Creates a path to the user's local Music directory
         home_directory = os.path.expanduser ("~")
@@ -92,6 +93,7 @@ class Window(tkinter.Tk):
         self.app_version = self.current_settings["about_info"]["version"]
         self.developer = self.current_settings["about_info"]["developer"]
         self.playlists = self.current_settings["Playlists"]
+
         #self.directory = self.current_settings["Directory"]
         # the above line needs to be fixed so that it loads the directory and sets it and stuff
 
@@ -133,8 +135,8 @@ class Window(tkinter.Tk):
         self.shuffle_dict = {}
 
         # Add a "Shuffle" button to your GUI
-        shuffle_button = tkinter.Button(self.frames["down"], text="Shuffle", command=self.shuffle_songs)
-        shuffle_button.grid(row=0, column=4,sticky="nsew")
+        self.shuffle_button = tkinter.Button(self.frames["down"], text="Enable Shuffle", command=self.toggleShuffle)
+        self.shuffle_button.grid(row=0, column=4,sticky="nsew")
 
         #tag information stuff
         self.tagInfo = tkinter.Label(self.frames["down"],font=("Roboto Mono",14, "bold"))
@@ -178,7 +180,6 @@ class Window(tkinter.Tk):
         self.refresh()
         self.loadSongs()
         self.refresh ()
-
 
         #there should be a set directory button for the whole application
 
@@ -234,14 +235,17 @@ class Window(tkinter.Tk):
         self.songButtons.clear()
         # Search bar and search button
         dummyFrame = tkinter.Frame()
-        self.search_entry = tkinter.Entry(dummyFrame, width=20)
-        self.search_entry.grid(row=0, column=0, padx=5)
+        dummyFrame.grid_columnconfigure(0,weight=1)
+        dummyFrame.grid_columnconfigure(1,weight=1)
+        dummyFrame.grid_rowconfigure(0,weight=1)
+        self.search_entry = tkinter.Entry(dummyFrame)
+        self.search_entry.grid(row=0, column=0, sticky="nsew")
         self.search_button = tkinter.Button(dummyFrame, text="Search", command=self.search_song)
-        self.search_button.grid(row=0, column=1, padx=5)
+        self.search_button.grid(row=0, column=1,sticky="nsew")
 
         # Search results listbox
-        self.search_results = tkinter.Listbox(dummyFrame, selectmode=tkinter.SINGLE, height=10)
-        self.search_results.grid(row=1, column=0, columnspan=2, padx=5)
+        self.search_results = tkinter.Listbox(dummyFrame, selectmode=tkinter.SINGLE)
+        self.search_results.grid(row=1, column=0, columnspan=2,sticky="nsew")
         self.search_results.bind("<<ListboxSelect>>", self.select_song)
         self.text.window_create("end",window=dummyFrame)
 
@@ -264,12 +268,18 @@ class Window(tkinter.Tk):
             selected_song = self.filtered_songs[int(selected_index[0])]
             self.queueSong(selected_song["id"])
         
-    def shuffle_songs(self):
-        random.shuffle(self.songs)
-        self.shuffle_dict = {i: song["id"] for i, song in enumerate(self.songs)}
-        self.loadSongsIntoFrame(self.songs)
-        if self.songs:
-            self.queueSong(self.songs[0]["id"])
+    def toggleShuffle(self):
+        self.shuffle = not self.shuffle
+        if self.shuffle: self.shuffle_button["text"] = "Disable Shuffle" 
+        else: self.shuffle_button["text"] = "Enable Shuffle"
+
+
+    # def shuffle_songs(self):
+    #     random.shuffle(self.songs)
+    #     self.shuffle_dict = {i: song["id"] for i, song in enumerate(self.songs)}
+    #     self.loadSongsIntoFrame(self.songs)
+    #     if self.songs:
+    #         self.queueSong(self.songs[0]["id"])
 
     def toggleLoop(self):
         self.loop = not self.loop
@@ -324,7 +334,7 @@ class Window(tkinter.Tk):
                                 trackRD = "Unknown"
                             trackImage = False
                         else:
-                            print("Error loading MP3")
+                            break
                             
                         try: 
                             trackTime = mp3.info.time_secs
@@ -347,10 +357,18 @@ class Window(tkinter.Tk):
 
                         #This append function prevents the program from loading mp3 files that have no image, because each ID in the array must include a value for trackImage
                         self.songs.append({"id":self.idCounter,"Title":trackTitle,"Artist":trackArtist,"Album":trackAlbum,"Release":trackRD,"Image":trackImage,"Directory":self.directory+"//"+i,"Length":trackTime})
+                        for i in list(self.playlists.keys()):
+                            for o in self.playlists[i]:
+                                if o["Title"] == self.songs[-1]["Title"] and o["Artist"] == self.songs[-1]["Artist"] and o["Album"] == self.songs[-1]["Album"] and o["Length"] == self.songs[-1]["Length"]:
+                                    o["id"] == self.songs[-1]["id"]
                         # print(mp3.info.time_secs, end = " | ")
                         #self.current_settings["likededSongs"]
                         self.idCounter += 1
-                self.loadSongsIntoFrame(self.songs)          
+                for i in list(self.playlists.keys()):
+                    for o in self.playlists[i]:
+                        if o not in self.songs:
+                            o["id"] = -1
+                self.loadSongsIntoFrame(self.songs)       
         else:
             #needs error handling eventually
             print("File doesn't exist \n")
@@ -391,6 +409,8 @@ class Window(tkinter.Tk):
         for i in range(len(songlist)):
             dummyframe = tkinter.Frame()
             button = tkinter.Button(dummyframe,text=f"Title: {songlist[i]['Title']} | Artist: {songlist[i]['Artist']} | Album: {songlist[i]['Album']}", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black")
+            if songlist[i] not in self.songs:
+                button["state"] = "disabled"
             playlistButton = tkinter.Button(dummyframe,text="Add to Playlist",command=partial(self.selectPlaylist,songlist[i],self.playlists))
             button.grid(row=0,column=0)
             playlistButton.grid(row=0,column=1)
@@ -599,7 +619,7 @@ class Window(tkinter.Tk):
             # self.Queue_listbox.selection_clear(0,tkinter.END)
             #self.currentSong += 1
             #self.Queue_listbox.selection_set(self.currentSong)
-            self.ListboxHighlightPlaying()
+            #self.ListboxHighlightPlaying()
         self.canvases["next"].bind("<ButtonRelease-1>",onRelease)
 
     #generates the previous button
@@ -624,7 +644,7 @@ class Window(tkinter.Tk):
 
             if (self.seek.get() <= 5):
                 self.moveSong(-1)
-                self.ListboxHighlightPlaying()
+                #self.ListboxHighlightPlaying()
                # self.Queue_listbox.selection_clear(0,tkinter.END)
                # self.currentSong -= 1
                # self.Queue_listbox.selection_set(self.currentSong)
@@ -678,6 +698,9 @@ class Window(tkinter.Tk):
             self.queueSong(self.songQueued["id"])
             return
         currentSong = self.songQueued
+        if self.shuffle:
+            self.queueSong(self.songs[random.randint(0,len(self.songs)-1)]["id"])
+            return
         for index, song in enumerate(self.songs):
             if song["id"]== currentSong["id"]:
                 break
