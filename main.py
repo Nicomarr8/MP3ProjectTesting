@@ -333,14 +333,29 @@ class Window(tkinter.Tk):
         # Queue the first song
         if self.songs:
             self.queueSong(self.songs[0]["id"])    
+
+    # the pop up window that shows all the playlists you can add a song to, should eventually have a scrollbar and actually look good 
+    class selectPlaylist(tkinter.Toplevel):
+        def __init__(self, song, playlists):
+            super().__init__()
+            self.title("Select Playlist")
+            self.geometry("300x200")
+            for i in range(len(playlists.keys())):
+                if song in playlists[list(playlists.keys())[i]]:
+                    button = tkinter.Button(self,text="Remove from " + list(playlists.keys())[i])
+                else:
+                    button = tkinter.Button(self,text="Add to " + list(playlists.keys())[i])
+                button.config(command=partial(self.toggleInPlaylist,playlists,song,button))
+                button.grid(row=i,column=0)
         
-    def likeSong(self,song,button):
-        if button["text"] == "Like":
-            self.playlists["likedSongs"].append(song)
-            button["text"] = "Unlike"
-        elif button["text"] == "Unlike":
-            self.playlists["likedSongs"].remove(song)
-            button["text"] = "Like"
+        def toggleInPlaylist(self,playlists,song,button):
+            if "Remove from " in button["text"] and song in playlists[button["text"].replace("Remove from ","")]:
+                playlists[button["text"].replace("Remove from ","")].remove(song)
+                button["text"] = "Add to " + button["text"].replace("Remove from ","")
+            elif "Add to " in button["text"]:
+                playlists[button["text"].replace("Add to ","")].append(song)
+                button["text"] = "Remove from " + button["text"].replace("Add to ","")
+
 
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self,songlist = []):
@@ -349,13 +364,9 @@ class Window(tkinter.Tk):
         for i in range(len(songlist)):
             dummyframe = tkinter.Frame()
             button = tkinter.Button(dummyframe,text=f"Title: {songlist[i]['Title']} | Artist: {songlist[i]['Artist']} | Album: {songlist[i]['Album']}", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black")
-            if songlist[i] in self.playlists["likedSongs"]:
-                likeButton = tkinter.Button(dummyframe,text="Unlike")
-            else:
-                likeButton = tkinter.Button(dummyframe,text="Like")
-            likeButton.config(command=partial(self.likeSong,songlist[i],likeButton))
+            playlistButton = tkinter.Button(dummyframe,text="Add to Playlist",command=partial(self.selectPlaylist,songlist[i],self.playlists))
             button.grid(row=0,column=0)
-            likeButton.grid(row=0,column=1)
+            playlistButton.grid(row=0,column=1)
             self.text.window_create("end", window=dummyframe)
             if (i < len(songlist) - 1):
                 self.text.insert("end", "\n")
