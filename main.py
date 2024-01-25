@@ -78,7 +78,6 @@ class Window(tkinter.Tk):
         self.frames["left"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["right"] = tkinter.Frame(self,bg = "#aaaaaa")
         self.frames["down"] = tkinter.Frame(self,bg = "#888888")
-        self.bind('<Visibility>',self.initializeSongs)
         
         #Load settings at the beginning of your program
         self.current_settings = self.load_settings()
@@ -180,6 +179,7 @@ class Window(tkinter.Tk):
         # refresh to put everything in place
         self.refresh()
         self.loadSongs()
+        self.bind('<Visibility>',self.initLoadSongs)
         #self.refresh ()
 
         #there should be a set directory button for the whole application
@@ -188,9 +188,10 @@ class Window(tkinter.Tk):
         self.filtered_songs = []
         #self.update_search_results()
 
-    def initializeSongs(self,event):
-        self.loadSongsIntoFrame(self.songs)
-        self.unbind('<Visibility>')
+    def initLoadSongs(self,event):
+        if self.text.winfo_width() > 1 and self.text.winfo_height() > 1:
+            self.loadSongsIntoFrame(self.songs)
+            self.unbind('<Visibility>')
 
     def loadPlaylistsIntoFrame(self):
         self.text["state"] = "normal"
@@ -320,18 +321,29 @@ class Window(tkinter.Tk):
 
                         if mp3:
                             try:
+                                if not mp3.tag.title:
+                                    raise Exception("dummyExcept")
+                                
                                 trackTitle = mp3.tag.title
                             except:
                                 trackTitle = fileNames[i].strip(".mp3")
                             try:
+                                if not mp3.tag.artist:
+                                    raise Exception("dummyExcept")
+                                
                                 trackArtist = mp3.tag.artist
                             except:
                                 trackArtist = "Unknown"
                             try:
+                                if not mp3.tag.album:
+                                    raise Exception("dummyExcept")
                                 trackAlbum = mp3.tag.album
                             except:
                                 trackAlbum = "Unknown"
                             try:
+                                if not mp3.tag.getBestDate():
+                                    raise Exception("dummyExcept")
+                                
                                 trackRD = mp3.tag.getBestDate()
                             except:
                                 trackRD = "Unknown"
@@ -371,7 +383,7 @@ class Window(tkinter.Tk):
                     for o in self.playlists[i]:
                         if o not in self.songs:
                             o["id"] = -1
-                self.loadSongsIntoFrame(self.songs)       
+                #self.loadSongsIntoFrame(self.songs)       
         else:
             #needs error handling eventually
             print("File doesn't exist \n")
@@ -422,7 +434,6 @@ class Window(tkinter.Tk):
             button.grid(row=0,column=0,sticky="nsew")
             playlistButton.grid(row=0,column=1,sticky="nsew")
             dummyframe.grid_propagate(0)
-            print(self.text.winfo_width(),self.text.winfo_height())
             dummyframe["width"] = self.text.winfo_width()
             dummyframe["height"] = self.text.winfo_height()/20
             self.text.window_create("end", window=dummyframe)
@@ -465,7 +476,7 @@ class Window(tkinter.Tk):
             #sets the seek bar back to 0
             self.seek.set(0)
             #displays information about the currently playing track
-            self.tagInfo.config(text=f"{self.songQueued['Title']}   |   {self.songQueued['Artist']}   |   {self.songQueued['Album']}")
+            self.tagInfo.config(text=f"{self.songQueued['Title'][0:15] + ' '*(15 - len(self.songQueued['Title']))}   |   {self.songQueued['Artist'][0:10] + ' '*(10 - len(self.songQueued['Artist']))}   |   {self.songQueued['Album'][0:20] + ' '*(20 - len(self.songQueued['Album']))}")
             self.seek.config(label="00:00")
             #For Testing purposes
             #print("THE DIRECTORY IS ", self.songQueued["Directory"]) 
@@ -511,7 +522,7 @@ class Window(tkinter.Tk):
                     self.parent.seek.set(self.parent.seek.get() + 1)
                     time.sleep(1)
             return
-
+        
     # a fresh function for all of the elements on the page (tkinter thing)
     def refresh(self):
         for i in range(len(self.frames)):
@@ -533,26 +544,25 @@ class Window(tkinter.Tk):
         self.frames["right"].grid_rowconfigure(1, weight=1)
         self.frames["right"].grid_columnconfigure(0, weight=1)
         self.frames["down"].grid(row=5, column=0, rowspan=1,columnspan=2, sticky="nsew")
-        
         for i in range(6):
             self.frames["down"].grid_columnconfigure(i, weight=1,uniform="column")
-        for i in range(3):
+        for i in range(2):
             self.frames["down"].grid_rowconfigure(i, weight=1)
 
         self.text.grid(row=1,column=0,sticky="nsew",pady=(0,20))
         self.scrollbar.grid(row=1,column=1,sticky="nsew")
 
         #tag info
-        self.tagInfo.grid(row=1,column=0, rowspan=2,columnspan=2, sticky="nsew")
+        self.tagInfo.grid(row=1,column=0,columnspan=2,sticky="nsew")
 
         #Images
         self.refreshCanvases()
 
         #seek bar
-        self.seek.grid(row=1, column=2,rowspan=2,columnspan=3,sticky="nsew")
+        self.seek.grid(row=1, column=2,columnspan=3,sticky="nsew")
         
         #volume slider
-        self.volume.grid(row=1, column=5,rowspan=2,columnspan=2,sticky="nsew")
+        self.volume.grid(row=1, column=5,columnspan=2,sticky="nsew")
         self.loopButton.grid(row=0,column=5,sticky="nsew")
 
         self.tabButtons.grid(row=0,column=0,columnspan=2,sticky="nsew")
