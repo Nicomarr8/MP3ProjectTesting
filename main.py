@@ -1,4 +1,5 @@
 import time, tkinter, eyed3, pygame, os, threading, random, json
+from tkinter import font
 from tkinter import ttk
 from tkinter import filedialog
 from functools import partial
@@ -8,10 +9,9 @@ class Window(tkinter.Tk):
     def __init__(self):
         super().__init__()
         self.title("MP3 Player")
-        self.geometry('1450x800')
+        self.geometry(f"{int(self.winfo_screenwidth() * (3/4))}x{int(self.winfo_screenheight() * (3/4))}")
         self.configure(background = "gray")
         self.buttonImages = {}
-        self.buttons = {}
         self.canvases = {}
         self.frames = {}
         self.songs = []
@@ -82,12 +82,13 @@ class Window(tkinter.Tk):
         #Load settings at the beginning of your program
         self.current_settings = self.load_settings()
         # Volume slider
-        self.volume= tkinter.Scale(self.frames["down"], from_=0, to =100, orient="horizontal", command=self.setVolume, label="Volume")
+        self.volume= tkinter.Scale(self.frames["down"], from_=0, to =100, orient="horizontal", command=self.setVolume, showvalue=0)
 
         # Access and update settings as needed
         self.visual_theme = self.current_settings["visual_theme"]
         self.username = self.current_settings["account_info"]["username"]
         self.volume.set(self.current_settings["volume"])
+        self.volume["label"] = f"Volume: {int(self.volume.get())}"
         self.language = self.current_settings["preferences"]["language"]
         self.notifications = self.current_settings["preferences"]["notifications"]
         self.app_version = self.current_settings["about_info"]["version"]
@@ -139,7 +140,9 @@ class Window(tkinter.Tk):
         self.shuffle_button.grid(row=0, column=4,sticky="nsew")
 
         #tag information stuff
-        self.tagInfo = tkinter.Label(self.frames["down"],font=("Roboto Mono",14, "bold"))
+        labelFont = font.nametofont("TkFixedFont")
+        labelFont.configure(size=12,weight="bold")
+        self.tagInfo = tkinter.Label(self.frames["down"],font=labelFont)
         #refresh to put everything in place
 
         #tab buttons
@@ -476,7 +479,7 @@ class Window(tkinter.Tk):
             #sets the seek bar back to 0
             self.seek.set(0)
             #displays information about the currently playing track
-            self.tagInfo.config(text=f"{self.songQueued['Title'][0:15] + ' '*(15 - len(self.songQueued['Title']))}   |   {self.songQueued['Artist'][0:10] + ' '*(10 - len(self.songQueued['Artist']))}   |   {self.songQueued['Album'][0:20] + ' '*(20 - len(self.songQueued['Album']))}")
+            self.tagInfo.config(text=f"{self.songQueued['Title'][0:15] + ' '*(15 - len(self.songQueued['Title']))}   |   {self.songQueued['Artist'][0:10] + ' '*(10 - len(self.songQueued['Artist']))}   |   {self.songQueued['Album'][0:15] + ' '*(15 - len(self.songQueued['Album']))}")
             self.seek.config(label="00:00")
             #For Testing purposes
             #print("THE DIRECTORY IS ", self.songQueued["Directory"]) 
@@ -553,13 +556,13 @@ class Window(tkinter.Tk):
         self.scrollbar.grid(row=1,column=1,sticky="nsew")
 
         #tag info
-        self.tagInfo.grid(row=1,column=0,columnspan=2,sticky="nsew")
+        self.tagInfo.grid(row=1,column=0,columnspan=3,sticky="nsew")
 
         #Images
         self.refreshCanvases()
 
         #seek bar
-        self.seek.grid(row=1, column=2,columnspan=3,sticky="nsew")
+        self.seek.grid(row=1, column=3,columnspan=2,sticky="nsew")
         
         #volume slider
         self.volume.grid(row=1, column=5,columnspan=2,sticky="nsew")
@@ -704,6 +707,7 @@ class Window(tkinter.Tk):
     #the volume setting function for the volume slider
     def setVolume(self,event):
         self.mixer.music.set_volume(self.volume.get()/100)
+        self.volume["label"] = f"Volume: {int(self.volume.get())}"
 
     #the is run on the X being clicked so that the threads are properly shut down with the window
     def tidyDestroy(self):
