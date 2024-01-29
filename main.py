@@ -349,9 +349,9 @@ class Window(tkinter.Tk):
                 #needs error handling eventually
                 print("Folder empty \n")
             else: 
-                for i in fileNames:
-                    if i.lower().endswith(".mp3"):
-                        mp3 = eyed3.load(self.directory + "\\" + i)
+                for i in range(len(fileNames)):
+                    if fileNames[i].lower().endswith(".mp3"):
+                        mp3 = eyed3.load(self.directory + "\\" + fileNames[i])
 
                         if mp3:
                             try:
