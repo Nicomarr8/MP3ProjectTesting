@@ -405,7 +405,7 @@ class Window(tkinter.Tk):
                             self.genAlbumIcon(2)
 
                         #This append function prevents the program from loading mp3 files that have no image, because each ID in the array must include a value for trackImage
-                        self.songs.append({"id":self.idCounter,"Title":trackTitle,"Artist":trackArtist,"Album":trackAlbum,"Release":trackRD,"Image":trackImage,"Directory":self.directory+"//"+i,"Length":trackTime})
+                        self.songs.append({"id":self.idCounter,"Title":trackTitle,"Artist":trackArtist,"Album":trackAlbum,"Release":trackRD,"Image":trackImage,"Directory":self.directory+"//"+fileNames[i],"Length":trackTime})
                         for i in list(self.playlists.keys()):
                             for o in self.playlists[i]:
                                 if o["Title"] == self.songs[-1]["Title"] and o["Artist"] == self.songs[-1]["Artist"] and o["Album"] == self.songs[-1]["Album"] and o["Length"] == self.songs[-1]["Length"]:
