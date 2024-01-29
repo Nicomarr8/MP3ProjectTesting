@@ -177,11 +177,13 @@ class Window(tkinter.Tk):
             #self.currentSong = 0
            # self.Queue_listbox.selection_set(self.currentSong)
 
+        #select directory button
         tkinter.Button(self.frames["down"], text = "Select Directory", command = select_directory).grid(row=0, column=3,sticky="nsew")
         
         # refresh to put everything in place
         self.refresh()
         self.loadSongs()
+        #this bind ensures the songs are loaded into frame at the right size
         self.bind('<Visibility>',self.initLoadSongs)
         #self.refresh ()
 
@@ -191,31 +193,41 @@ class Window(tkinter.Tk):
         self.filtered_songs = []
         #self.update_search_results()
 
+    #this function is called once the size of the window is rendered, then unbinds itself
     def initLoadSongs(self,event):
         if self.text.winfo_width() > 1 and self.text.winfo_height() > 1:
             self.loadSongsIntoFrame(self.songs)
             self.unbind('<Visibility>')
 
+    #this loads the playlists into the window
     def loadPlaylistsIntoFrame(self):
+        #code to clear the window of previous buttons
         self.text["state"] = "normal"
         self.removeButtons()
         self.songButtons.clear()
+        #for loop for every playlist
         for i in self.playlists.keys():
+            #dummy frame to hold the playlist button and potential delete playlist button
             dummyframe = tkinter.Frame()
             dummyframe.grid_columnconfigure(0,weight=1)
             dummyframe.grid_rowconfigure(0,weight=1)
+            #this is the actual playlist button
             button = tkinter.Button(dummyframe,text=i,command=partial(self.loadSongsIntoFrame,self.playlists[i]))
             button.grid(row=0,column=0,sticky="nsew")
+            #only allow delete button if it's not liked songs, that playlsit can't be deleted
             if button['text'] != "likedSongs":
                 dummyframe.grid_columnconfigure(1,weight=1)
                 deleteButton = tkinter.Button(dummyframe,text="Delete Playlist",command=partial(self.deletePlaylist,i))
                 deleteButton.grid(row=0,column=1,sticky="nsew")
+            #this is to set the size of the frame correctly
             dummyframe.grid_propagate(0)
             dummyframe["width"] = self.text.winfo_width()
             dummyframe["height"] = self.text.winfo_height()/20
+            #this puts the frame in the correct palce on the window
             self.text.window_create("end",window=dummyframe)
             self.text.insert("end", "\n")
             self.songButtons.append(button)
+        #all of this is for the add playlist button
         dummyframe = tkinter.Frame()
         dummyframe.grid_columnconfigure(0,weight=1)
         dummyframe.grid_rowconfigure(0,weight=1)
@@ -227,13 +239,15 @@ class Window(tkinter.Tk):
         self.text.window_create("end",window=dummyframe)
         self.text.insert("end", "\n")
         self.songButtons.append(button)
+        #re disable the text box so that teh buttons can't be removed with a backspace
         self.text["state"] = "disabled"
 
+    #function to delete playlists
     def deletePlaylist(self,name):
         self.playlists.pop(name)
         self.loadPlaylistsIntoFrame()
 
-
+    #pop up window for making new playlists
     class newPlaylist(tkinter.Toplevel):
         def __init__(self, parent):
             super().__init__()
@@ -244,6 +258,7 @@ class Window(tkinter.Tk):
             createButton = tkinter.Button(self,text="Create Playlist",command=partial(self.createPlaylist,name,parent))
             createButton.grid(row=1,column=0)
 
+        #function to make a new playlist and add it to the internal dictionary
         def createPlaylist(self,name,parent):
             nameText = name.get(1.0,"end-1c")
             if nameText in list(parent.playlists.keys()):
@@ -253,6 +268,7 @@ class Window(tkinter.Tk):
             parent.loadPlaylistsIntoFrame()
             self.destroy()
 
+    #function to load search box into the window correctly
     def loadSearchIntoFrame(self):
         self.text["state"] = "normal"
         self.removeButtons()
@@ -295,12 +311,14 @@ class Window(tkinter.Tk):
         if selected_index:
             selected_song = self.filtered_songs[int(selected_index[0])]
             self.queueSong(selected_song["id"])
-        
+    
+    #this function just toggles the shuffle variable and button on/off
     def toggleShuffle(self):
         self.shuffle = not self.shuffle
         if self.shuffle: self.shuffle_button["text"] = "Disable Shuffle" 
         else: self.shuffle_button["text"] = "Enable Shuffle"
 
+    #this function just toggles the loop variable and button on/off
     def toggleLoop(self):
         self.loop = not self.loop
         if self.loop: self.loopButton.config(text="Disable Loop")
