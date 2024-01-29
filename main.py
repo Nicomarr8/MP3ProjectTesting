@@ -299,7 +299,7 @@ class Window(tkinter.Tk):
                                 trackRD = "Unknown"
                             trackImage = False
                         else:
-                            print("Error loading MP3")
+                            break
                             
                         if trackTitle == None: trackTitle = "Unknown"
                         if trackArtist == None: trackArtist = "Unknown"
