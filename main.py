@@ -9,8 +9,8 @@ class Window(tkinter.Tk):
     def __init__(self):
         super().__init__()
         self.title("Pufferfish")
-        # if ("PufferfishLogo.ico"):
-        #     self.iconbitmap("PufferfishLogo.ico")
+        if ("PufferfishLogo.ico"):
+            self.iconbitmap("PufferfishLogo.ico")
         self.geometry(f"{int(self.winfo_screenwidth() * (3/4))}x{int(self.winfo_screenheight() * (3/4))}")
         self.configure(background = "gray")
         self.buttonImages = {}
