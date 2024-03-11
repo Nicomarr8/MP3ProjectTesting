@@ -5,17 +5,36 @@ from tkinter import filedialog
 from functools import partial
 from PIL import ImageTk,Image
 
+#Only applies to Windows systems
+try:
+    from ctypes import windll, byref, sizeof, c_int
+except:
+    pass
+
 class Window(tkinter.Tk):
     def __init__(self):
         super().__init__()
+        #Establish style of application window
         self.title("Pufferfish")
-        if ("PufferfishLogo.ico"):
+        try:
             self.iconbitmap("PufferfishLogo.ico")
+        except:
+            pass
+        try:
+            HWND = windll.user32.GetParent(self.winfo_id())
+            AppColor = 0x00332823
+            windll.dwmapi.DwmSetWindowAttribute(HWND,35,byref(c_int(AppColor)),sizeof(c_int))
+        except:
+            pass
+
+        #Configure application geometry
         self.geometry(f"{int(self.winfo_screenwidth() * (3/4))}x{int(self.winfo_screenheight() * (3/4))}")
         self.configure(background = "gray")
         self.buttonImages = {}
         self.canvases = {}
         self.frames = {}
+
+        #Configure application and file data
         self.songs = []
         self.songButtons = []
         self.playlists = {"likedSongs":[]}
