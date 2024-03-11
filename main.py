@@ -8,7 +8,9 @@ from PIL import ImageTk,Image
 class Window(tkinter.Tk):
     def __init__(self):
         super().__init__()
-        self.title("MP3 Player")
+        self.title("Pufferfish")
+        if ("PufferfishLogo.ico"):
+            self.iconbitmap("PufferfishLogo.ico")
         self.geometry(f"{int(self.winfo_screenwidth() * (3/4))}x{int(self.winfo_screenheight() * (3/4))}")
         self.configure(background = "gray")
         self.buttonImages = {}
@@ -23,6 +25,9 @@ class Window(tkinter.Tk):
         self.likedMode = False
         self.loop = False
         self.shuffle = False
+        self.scrollSpeed = 50
+        self.labelIndex = 0
+        self.songLabel = []
 
         #Creates a path to the user's local Music directory
         home_directory = os.path.expanduser ("~")
@@ -490,9 +495,11 @@ class Window(tkinter.Tk):
         for i in range(len(self.songs)):
             if self.songs[i]["id"] == id:
                 self.songQueued = self.songs[i]
-        
+
         #verifies the song exists and was loaded
         if not self.songQueued["id"] == None:
+            self.songInfo = f"{self.songQueued['Title']}   |   {self.songQueued['Artist']}   |   {self.songQueued['Album']}"
+
             #resets and fills the left frame's canvas with the album cover
             self.canvasAlbum.delete("all")
             self.canvasAlbum.grid_remove()
@@ -510,7 +517,8 @@ class Window(tkinter.Tk):
             #sets the seek bar back to 0
             self.seek.set(0)
             #displays information about the currently playing track
-            self.tagInfo.config(text=f"{self.songQueued['Title'][0:15] + ' '*(15 - len(self.songQueued['Title']))}   |   {self.songQueued['Artist'][0:10] + ' '*(10 - len(self.songQueued['Artist']))}   |   {self.songQueued['Album'][0:15] + ' '*(15 - len(self.songQueued['Album']))}")
+            self.tagInfo.config(width=20, text=self.songInfo)
+            self.scroll_text
             self.seek.config(label="00:00")
             #For Testing purposes
             #print("THE DIRECTORY IS ", self.songQueued["Directory"]) 
@@ -519,6 +527,13 @@ class Window(tkinter.Tk):
             self.mixer.music.play()
             if self.paused: self.pause()
             #self.loadIntoListbox()
+
+    def scroll_text(self):
+        self.labelIndex += 1
+        songLabel = [self.songInfo]
+        if self.labelIndex >= len(self.songInfo):
+            self.labelIndex = 0
+        self.tagInfo.config(width=20, text=songLabel[self.labelIndex:]+songLabel[:self.labelIndex])
 
     # load settings from the JSON file
     def load_settings(self):
