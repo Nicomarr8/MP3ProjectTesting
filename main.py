@@ -565,13 +565,10 @@ class Window(tkinter.Tk):
 
     # Save settings to the JSON file
     def save_settings(self):
-        self.current_settings["visual_theme"] = self.visual_theme 
-        self.current_settings["account_info"]["username"] = self.username
+        # self.current_settings["visual_theme"] = self.visual_theme 
         self.current_settings["volume"] = self.volume.get()
-        self.current_settings["preferences"]["language"] = self.language
-        self.current_settings["preferences"]["notifications"] = self.notifications
-        self.current_settings["about_info"]["version"] = self.app_version
-        self.current_settings["about_info"]["developer"] = self.developer
+        # self.current_settings["about_info"]["version"] = self.app_version
+        # self.current_settings["about_info"]["developer"] = self.developer
         self.current_settings["Playlists"] = self.playlists
         with open(self.directory + '/settings.json', 'w') as file:
             json.dump(self.current_settings,file)
