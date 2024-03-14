@@ -184,14 +184,7 @@ class Window(tkinter.Tk):
             self.removeButtons()
             self.refresh() 
 
-            if os.path.exists(text_directory) and os.path.isfile(text_directory):
-                # Clear the content of the file and write the new string
-                with open(text_directory, 'w') as text:
-                    text.write(self.directory)
-            else:
-                # If the file doesn't exist, create a new file and write the string
-                with open(text_directory, 'w') as text:
-                    text.write(self.directory)
+            self.current_settings["Directory"] = self.directory
 
             #self.ListboxRemoveOldSongs()
             self.loadSongs()
@@ -563,16 +556,6 @@ class Window(tkinter.Tk):
             settings = self.DEFAULT_SETTINGS
         return settings
 
-    # Save settings to the JSON file
-    def save_settings(self):
-        # self.current_settings["visual_theme"] = self.visual_theme 
-        self.current_settings["volume"] = self.volume.get()
-        # self.current_settings["about_info"]["version"] = self.app_version
-        # self.current_settings["about_info"]["developer"] = self.developer
-        self.current_settings["Playlists"] = self.playlists
-        with open(self.directory + '/settings.json', 'w') as file:
-            json.dump(self.current_settings,file)
-
     #a thread to update the seek bar every second
     class updateSeek(threading.Thread):
         def __init__(self,parent):
@@ -770,13 +753,16 @@ class Window(tkinter.Tk):
     def setVolume(self,event):
         self.mixer.music.set_volume(self.volume.get()/100)
         self.volume["label"] = f"Volume: {int(self.volume.get())}"
+        self.current_settings["volume"] = self.volume.get()
 
     #the is run on the X being clicked so that the threads are properly shut down with the window
     def tidyDestroy(self):
-        self.save_settings()
+        # save the settings to the json file
+        self.current_settings["Playlists"] = self.playlists
+        with open(self.directory + '/settings.json', 'w') as file:
+            json.dump(self.current_settings,file)
         self.seekUpdater._stop.set
         time.sleep(1)
-        # we could totally put a bunch of saving stuff in here, this is the function that closes everything
         self.destroy()
 
     #this is the function for the next and previous buttons
