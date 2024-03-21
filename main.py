@@ -10,12 +10,12 @@ try:
     from ctypes import windll, byref, sizeof, c_int
 except:
     pass
-
+print(os.getcwd())
 class Window(tkinter.Tk):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         #Establish style of application window
-        self.title("Pufferfish")
+        self.title("Pufferfish v0.2")
         try:
             self.iconbitmap("PufferfishLogo.ico")
         except:
@@ -29,6 +29,7 @@ class Window(tkinter.Tk):
 
         #Configure application geometry
         self.geometry(f"{int(self.winfo_screenwidth() * (3/4))}x{int(self.winfo_screenheight() * (3/4))}")
+        self.minsize(600, 480)
         self.configure(background = "gray")
         self.buttonImages = {}
         self.canvases = {}
@@ -49,34 +50,11 @@ class Window(tkinter.Tk):
         self.songLabel = []
 
         #Creates a path to the user's local Music directory
-        home_directory = os.path.expanduser ("~")
-        music_directory = os.path.join(home_directory, "Music")
-
-        self.music_directory_path = os.path.join(music_directory, "MP3_App")
+        self.music_directory_path = os.path.join(os.path.join(os.path.expanduser ("~"), "Music"), "Pufferfish_Music")
 
         #Creates a folder in the Windows music directory
         if not os.path.exists(self.music_directory_path): 
             os.makedirs(self.music_directory_path)
-
-        #Creates a text file to track the default directory
-        text_directory = os.path.join(self.music_directory_path, "SongDirectory.txt")
-        
-        # Check if the file exists in the directory
-        if os.path.exists(text_directory) and os.path.isfile(text_directory):
-            # Read the content of the file to determine the new directory
-            with open(text_directory, 'r') as text:
-                TrackDirectory = text.read().strip()
-                if (os.path.exists(TrackDirectory)):
-                    self.directory = TrackDirectory
-                else:
-                    self.directory = self.music_directory_path
-        else:
-            # If the file doesn't exist, set 'self.directory' to 'music_directory_path'
-            self.directory = self.music_directory_path
-            # Create a new SongDirectory.txt file and write 'self.directory' to it
-            with open(text_directory, 'w') as text:
-                text.write(self.directory)
-                text.close()
 
         # default settings dictionary
         self.DEFAULT_SETTINGS = {
@@ -99,25 +77,29 @@ class Window(tkinter.Tk):
         }
 
         #frames
-        self.frames["left"] = tkinter.Frame(self,bg = "#aaaaaa")
-        self.frames["right"] = tkinter.Frame(self,bg = "#aaaaaa")
+        self.frames["left"] = tkinter.Frame(self,bg = "#333333")
+        self.frames["right"] = tkinter.Frame(self,bg = "#333333")
         self.frames["down"] = tkinter.Frame(self,bg = "#888888")
         
         #Load settings at the beginning of your program
+        self.settingsLocation = os.path.join(os.getcwd(), '.git\\settings.json')
         self.current_settings = self.load_settings()
         # Volume slider
         self.volume= tkinter.Scale(self.frames["down"], from_=0, to =100, orient="horizontal", command=self.setVolume, showvalue=0)
 
         # Access and update settings as needed
         self.visual_theme = self.current_settings["visual_theme"]
-        self.username = self.current_settings["account_info"]["username"]
+        # self.username = self.current_settings["account_info"]["username"]
         self.volume.set(self.current_settings["volume"])
         self.volume["label"] = f"Volume: {int(self.volume.get())}"
-        self.language = self.current_settings["preferences"]["language"]
-        self.notifications = self.current_settings["preferences"]["notifications"]
+        # self.language = self.current_settings["preferences"]["language"]
         self.app_version = self.current_settings["about_info"]["version"]
         self.developer = self.current_settings["about_info"]["developer"]
         self.playlists = self.current_settings["Playlists"]
+        self.directory = self.current_settings["Directory"]
+
+        if not os.path.isdir(self.directory):
+            self.directory = self.music_directory_path
 
         #self.directory = self.current_settings["Directory"]
         # the above line needs to be fixed so that it loads the directory and sets it and stuff
@@ -130,7 +112,7 @@ class Window(tkinter.Tk):
         self.text = tkinter.Text(self.frames["right"],yscrollcommand=self.scrollbar.set,bg = "#aaaaaa",state="disabled")
         self.scrollbar.config(command=self.text.yview)
         #album default icon
-        self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="grey")
+        self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="#333333")
         self.genAlbumIcon(2)
 
         self.buttonFactor = 0.4
@@ -180,7 +162,12 @@ class Window(tkinter.Tk):
 
         # Allows the user to select a directory and automatically update the list in the application
         def select_directory():
-            self.directory = filedialog.askdirectory() 
+            # Configure file types to show in the dialog
+            file_types = [("MP3 files", "*.mp3"), ("All files", "*.*")]
+
+            # Ask the user to select a directory
+            self.directory = filedialog.askdirectory()
+
             self.removeButtons()
             self.refresh() 
 
@@ -188,6 +175,7 @@ class Window(tkinter.Tk):
 
             #self.ListboxRemoveOldSongs()
             self.loadSongs()
+            self.loadSongsIntoFrame(self.songs)
 
             #self.ListboxHighlightPlaying()
             #self.Queue_listbox.selection_clear(0,tkinter.END)
@@ -211,7 +199,7 @@ class Window(tkinter.Tk):
         #self.update_search_results()
 
     #this function is called once the size of the window is rendered, then unbinds itself
-    def initLoadSongs(self,event):
+    def initLoadSongs(self, event):
         if self.text.winfo_width() > 1 and self.text.winfo_height() > 1:
             self.loadSongsIntoFrame(self.songs)
             self.unbind('<Visibility>')
@@ -311,9 +299,9 @@ class Window(tkinter.Tk):
         self.text["state"] = "disabled"
 
     def search_song(self):
-        query = self.search_entry.get().strip()
+        query = self.search_entry.get().strip().lower()
         if query:
-            self.filtered_songs = [song for song in self.songs if query in song["Title"]]
+            self.filtered_songs = [song for song in self.songs if query in song["Title"].lower() or query in song["Artist"].lower() or query in song["Album"].lower()]
         else:
             self.filtered_songs = self.songs
         self.update_search_results()
@@ -391,13 +379,13 @@ class Window(tkinter.Tk):
                                 trackAlbum = mp3.tag.album
                             except:
                                 trackAlbum = "Unknown"
-                            try:
-                                if not mp3.tag.getBestDate():
-                                    raise Exception("dummyExcept")
+                            # try:
+                            #     if not mp3.tag.getBestDate():
+                            #         raise Exception("dummyExcept")
                                 
-                                trackRD = mp3.tag.getBestDate()
-                            except:
-                                trackRD = "Unknown"
+                            #     trackRD = mp3.tag.getBestDate()
+                            # except:
+                            #     trackRD = "Unknown"
                             trackImage = False
                         else:
                             break
@@ -422,7 +410,7 @@ class Window(tkinter.Tk):
                             self.genAlbumIcon(2)
 
                         #This append function prevents the program from loading mp3 files that have no image, because each ID in the array must include a value for trackImage
-                        self.songs.append({"id":self.idCounter,"Title":trackTitle,"Artist":trackArtist,"Album":trackAlbum,"Release":trackRD,"Image":trackImage,"Directory":self.directory+"//"+fileNames[i],"Length":trackTime})
+                        self.songs.append({"id":self.idCounter,"Title":trackTitle,"Artist":trackArtist,"Album":trackAlbum,"Image":trackImage,"Directory":self.directory+"//"+fileNames[i],"Length":trackTime})
                         for i in list(self.playlists.keys()):
                             for o in self.playlists[i]:
                                 if o["Title"] == self.songs[-1]["Title"] and o["Artist"] == self.songs[-1]["Artist"] and o["Album"] == self.songs[-1]["Album"] and o["Length"] == self.songs[-1]["Length"]:
@@ -478,7 +466,7 @@ class Window(tkinter.Tk):
             dummyframe.grid_columnconfigure(0,weight=1)
             dummyframe.grid_columnconfigure(1,weight=1)
             dummyframe.grid_rowconfigure(0,weight=1)
-            button = tkinter.Button(dummyframe,text=f"Title: {songlist[i]['Title']} | Artist: {songlist[i]['Artist']} | Album: {songlist[i]['Album']}", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black")
+            button = tkinter.Button(dummyframe,text=f"{songlist[i]['Title']} | {songlist[i]['Artist']} | {songlist[i]['Album']}", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black")
             if songlist[i] not in self.songs:
                 button["state"] = "disabled"
             playlistButton = tkinter.Button(dummyframe,text="Add to Playlist",command=partial(self.selectPlaylist,songlist[i],self.playlists))
@@ -517,7 +505,7 @@ class Window(tkinter.Tk):
             self.canvasAlbum.grid_remove()
             if self.songQueued["Image"]:
                 # self.canvasAlbum.pack(side = "left", fill = "both", expand = True ,padx=2,pady=2)
-                self.canvasAlbum.config(width=600,height=400)
+                self.canvasAlbum.config(width=640,height=640)
                 self.canvasAlbum.grid(row=0, column=0, rowspan=3, columnspan=3)
                 self.albumimg = ImageTk.PhotoImage(Image.open(f"..\\imgs\\{self.songQueued['id']} - {self.songQueued['Title']} - {self.songQueued['Artist']}().jpg"))
                 self.canvasAlbum.create_image(0, 0, anchor="nw", image=self.albumimg)
@@ -550,10 +538,17 @@ class Window(tkinter.Tk):
     # load settings from the JSON file
     def load_settings(self):
         try:
-            with open(self.music_directory_path + '/settings.json', 'r') as file:
+            with open(self.settingsLocation, 'r') as file:
+                print("uh-huh")
                 settings = json.load(file)
+                file.close()
         except FileNotFoundError:
+            print("uh-oh!")
             settings = self.DEFAULT_SETTINGS
+            # settingsFile = os.path.join (self.music_directory_path, "settings.json")
+            with open(os.path.join(self.settingsLocation), 'w+') as file:
+                json.dump(self.DEFAULT_SETTINGS, file)
+
         return settings
 
     #a thread to update the seek bar every second
@@ -625,6 +620,15 @@ class Window(tkinter.Tk):
             self.grid_columnconfigure(i,weight=1)
         for i in range(self.grid_size()[1]):
             self.grid_rowconfigure(i,weight=1)
+
+    def resize_event(self, event):
+        width = event.width
+        height = event.height
+
+        # Ensure the "left" frame is always a square
+        size = min(width, height)
+        self.frames["left"].config(width=size, height=size)
+        self.frames["left"].update_idletasks()  # Force update
 
     # a refresh for only the canvases (buttons and album cover)
     def refreshCanvases(self):
@@ -759,8 +763,16 @@ class Window(tkinter.Tk):
     def tidyDestroy(self):
         # save the settings to the json file
         self.current_settings["Playlists"] = self.playlists
-        with open(self.directory + '/settings.json', 'w') as file:
-            json.dump(self.current_settings,file)
+        with open(self.settingsLocation, 'w+') as file:
+            try:
+                # print(self.current_settings["Directory"])
+                print(self.current_settings)
+                json.dump(self.current_settings, file)
+                file.close()
+                # print(self.current_settings["Directory"])
+                print("Settings updated successfully.")
+            except Exception as e:
+                print("Error:", e)
         self.seekUpdater._stop.set
         time.sleep(1)
         self.destroy()
