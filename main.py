@@ -10,7 +10,7 @@ try:
     from ctypes import windll, byref, sizeof, c_int
 except:
     pass
-print(os.getcwd())
+
 class Window(tkinter.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -464,16 +464,17 @@ class Window(tkinter.Tk):
         for i in range(len(songlist)):
             dummyframe = tkinter.Frame()
             dummyframe.grid_columnconfigure(0,weight=1)
-            dummyframe.grid_columnconfigure(1,weight=1)
+            dummyframe.grid_columnconfigure(1,weight=0)
             dummyframe.grid_rowconfigure(0,weight=1)
-            button = tkinter.Button(dummyframe,text=f"{songlist[i]['Title']} | {songlist[i]['Artist']} | {songlist[i]['Album']}", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black")
+            playlistButton = tkinter.Button(dummyframe,text="Add to Playlist",command=partial(self.selectPlaylist,songlist[i],self.playlists))
+            button = tkinter.Button(dummyframe,text=f" {songlist[i]['Title']} | {songlist[i]['Artist']} | {songlist[i]['Album']}", anchor="w", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black", width=(dummyframe.winfo_width()-playlistButton.winfo_width()))
             if songlist[i] not in self.songs:
                 button["state"] = "disabled"
-            playlistButton = tkinter.Button(dummyframe,text="Add to Playlist",command=partial(self.selectPlaylist,songlist[i],self.playlists))
             button.grid(row=0,column=0,sticky="nsew")
-            playlistButton.grid(row=0,column=1,sticky="nsew")
+            playlistButton.grid(row=0,column=1,sticky="nse")
             dummyframe.grid_propagate(0)
             dummyframe["width"] = self.text.winfo_width()
+            # dummyframe["width"] = self.frames["right"].winfo_width()
             dummyframe["height"] = self.text.winfo_height()/20
             self.text.window_create("end", window=dummyframe)
             if (i < len(songlist) - 1):
@@ -766,7 +767,7 @@ class Window(tkinter.Tk):
         with open(self.settingsLocation, 'w+') as file:
             try:
                 # print(self.current_settings["Directory"])
-                print(self.current_settings)
+                # print(self.current_settings)
                 json.dump(self.current_settings, file)
                 file.close()
                 # print(self.current_settings["Directory"])
