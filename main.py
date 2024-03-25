@@ -82,7 +82,7 @@ class Window(tkinter.Tk):
         self.frames["down"] = tkinter.Frame(self,bg = "#888888")
         
         #Load settings at the beginning of your program
-        self.settingsLocation = os.path.join(os.getcwd(), '.git\\settings.json')
+        self.settingsLocation = os.path.join(os.getcwd(), 'settings.json')
         self.current_settings = self.load_settings()
         # Volume slider
         self.volume= tkinter.Scale(self.frames["down"], from_=0, to =100, orient="horizontal", command=self.setVolume, showvalue=0)
