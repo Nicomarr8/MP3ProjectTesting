@@ -190,6 +190,7 @@ class Window(tkinter.Tk):
         self.loadSongs()
         #this bind ensures the songs are loaded into frame at the right size
         self.bind('<Visibility>',self.initLoadSongs)
+        self.bind("<space>",self.pausePlay)
         #self.refresh ()
 
         #there should be a set directory button for the whole application
@@ -284,6 +285,7 @@ class Window(tkinter.Tk):
         dummyFrame.grid_columnconfigure(1,weight=1)
         dummyFrame.grid_rowconfigure(1,weight=1)
         self.search_entry = tkinter.Entry(dummyFrame)
+        self.search_entry.bind("<Return>",self.search_song)
         self.search_entry.grid(row=0, column=0, sticky="nsew")
         self.search_button = tkinter.Button(dummyFrame, text="Search", command=self.search_song)
         self.search_button.grid(row=0, column=1,sticky="nsew")
@@ -298,7 +300,7 @@ class Window(tkinter.Tk):
         self.text.window_create("end",window=dummyFrame)
         self.text["state"] = "disabled"
 
-    def search_song(self):
+    def search_song(self,event = None):
         query = self.search_entry.get().strip().lower()
         if query:
             self.filtered_songs = [song for song in self.songs if query in song["Title"].lower() or query in song["Artist"].lower() or query in song["Album"].lower()]
@@ -733,6 +735,13 @@ class Window(tkinter.Tk):
         self.canvasAlbum.config(width=100*factor,height=100*factor)
         self.canvasAlbum.create_oval(35*factor,20*factor,65*factor,50*factor,outline="black",fill="white",width=2)
         self.canvasAlbum.create_polygon([30*factor,60*factor,70*factor,60*factor,80*factor,70*factor,80*factor,80*factor,20*factor,80*factor,20*factor,70*factor,30*factor,60*factor],outline="black",fill="white",width=2)
+
+    #function for spacebar, we can make this the standard one in the future
+    def pausePlay(self,event): # button doesn't update
+        if self.paused:
+            self.canvases["play"].invoke()
+        elif not self.paused:
+            self.canvases["play"].invoke()
 
     #play function
     def play(self):
