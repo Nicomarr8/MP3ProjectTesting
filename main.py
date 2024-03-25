@@ -191,6 +191,7 @@ class Window(tkinter.Tk):
         #this bind ensures the songs are loaded into frame at the right size
         self.bind('<Visibility>',self.initLoadSongs)
         self.bind("<space>",self.pausePlay)
+        #self.bind("<Configure>",self.test)
         #self.refresh ()
 
         #there should be a set directory button for the whole application
@@ -198,6 +199,9 @@ class Window(tkinter.Tk):
         # Update the search results
         self.filtered_songs = []
         #self.update_search_results()
+
+    def test(self, event):
+        print("called")
 
     #this function is called once the size of the window is rendered, then unbinds itself
     def initLoadSongs(self, event):
@@ -739,9 +743,9 @@ class Window(tkinter.Tk):
     #function for spacebar, we can make this the standard one in the future
     def pausePlay(self,event): # button doesn't update
         if self.paused:
-            self.canvases["play"].invoke()
+            self.play()
         elif not self.paused:
-            self.canvases["play"].invoke()
+            self.pause()
 
     #play function
     def play(self):
