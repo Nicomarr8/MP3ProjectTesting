@@ -796,12 +796,14 @@ class Window(tkinter.Tk):
         if self.loop:
             self.queueSong(self.songQueued["id"])
             return
-        currentSong = self.songQueued
+        self.currentSong = self.songQueued
         if self.shuffle:
-            self.queueSong(self.songs[random.randint(0,len(self.songs)-1)]["id"])
+            id = self.songs[random.randint(0,len(self.songs)-1)]["id"]
+            while id == self.currentSong.id: id = self.songs[random.randint(0,len(self.songs)-1)]["id"]
+            self.queueSong(id)
             return
         for index, song in enumerate(self.songs):
-            if song["id"]== currentSong["id"]:
+            if song["id"]== self.currentSong["id"]:
                 break
         #index is where the self.songQueued = the currentSong
         if direction == -1:
