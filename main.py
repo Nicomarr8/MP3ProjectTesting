@@ -3,7 +3,7 @@ from tkinter import font
 from tkinter import ttk
 from tkinter import filedialog
 from functools import partial
-from PIL import ImageTk,Image
+from PIL import ImageTk, Image
 
 #Only applies to Windows systems
 try:
@@ -29,7 +29,7 @@ class Window(tkinter.Tk):
 
         #Configure application geometry
         self.geometry(f"{int(self.winfo_screenwidth() * (3/4))}x{int(self.winfo_screenheight() * (3/4))}")
-        self.minsize(600, 480)
+        self.minsize(480, 480)
         self.configure(background = "gray")
         self.buttonImages = {}
         self.canvases = {}
@@ -79,7 +79,7 @@ class Window(tkinter.Tk):
         #frames
         self.frames["left"] = tkinter.Frame(self,bg = "#333333")
         self.frames["right"] = tkinter.Frame(self,bg = "#333333")
-        self.frames["down"] = tkinter.Frame(self,bg = "#888888")
+        self.frames["down"] = tkinter.Frame(self,bg = "white")
         
         #Load settings at the beginning of your program
         self.settingsLocation = os.path.join(os.getcwd(), 'settings.json')
@@ -112,7 +112,7 @@ class Window(tkinter.Tk):
         self.text = tkinter.Text(self.frames["right"],yscrollcommand=self.scrollbar.set,bg = "#aaaaaa",state="disabled")
         self.scrollbar.config(command=self.text.yview)
         #album default icon
-        self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="#333333")
+        self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="#333333", bd=0, highlightthickness=0)
         self.genAlbumIcon(2)
 
         self.buttonFactor = 0.4
@@ -142,7 +142,7 @@ class Window(tkinter.Tk):
         self.shuffle_dict = {}
 
         # Add a "Shuffle" button to your GUI
-        self.shuffle_button = tkinter.Button(self.frames["down"], text="Enable Shuffle", command=self.toggleShuffle)
+        self.shuffle_button = tkinter.Button(self.frames["down"], text="Enable Shuffle", fg="white", bg="#333333", command=self.toggleShuffle)
         self.shuffle_button.grid(row=0, column=4,sticky="nsew")
 
         #tag information stuff
@@ -154,11 +154,11 @@ class Window(tkinter.Tk):
         #tab buttons
         self.tabButtons = tkinter.Frame(self.frames["right"])
         self.tabs = []
-        self.tabs.append(tkinter.Button(self.tabButtons,text="Songs",command=partial(self.loadSongsIntoFrame,self.songs)))
-        self.tabs.append(tkinter.Button(self.tabButtons,text="Playlists", command=self.loadPlaylistsIntoFrame))
-        self.tabs.append(tkinter.Button(self.tabButtons,text="Search", command=self.loadSearchIntoFrame))
+        self.tabs.append(tkinter.Button(self.tabButtons,text="Songs", fg="white", bg="#333333", command=partial(self.loadSongsIntoFrame,self.songs)))
+        self.tabs.append(tkinter.Button(self.tabButtons,text="Playlists", fg="white", bg="#333333", command=self.loadPlaylistsIntoFrame))
+        self.tabs.append(tkinter.Button(self.tabButtons,text="Search", fg="white", bg="#333333", command=self.loadSearchIntoFrame))
 
-        self.loopButton = tkinter.Button(self.frames["down"],text="Enable Loop",command=self.toggleLoop)
+        self.loopButton = tkinter.Button(self.frames["down"],text="Enable Loop", fg="white", bg="#333333", command=self.toggleLoop)
 
         # Allows the user to select a directory and automatically update the list in the application
         def select_directory():
@@ -183,16 +183,16 @@ class Window(tkinter.Tk):
            # self.Queue_listbox.selection_set(self.currentSong)
 
         #select directory button
-        tkinter.Button(self.frames["down"], text = "Select Directory", command = select_directory).grid(row=0, column=3,sticky="nsew")
+        tkinter.Button(self.frames["down"], text = "Select Directory", fg="white", bg="#333333", command = select_directory).grid(row=0, column=3,sticky="nsew")
         
         # refresh to put everything in place
-        self.refresh()
-        self.loadSongs()
         #this bind ensures the songs are loaded into frame at the right size
         self.bind('<Visibility>',self.initLoadSongs)
         self.bind("<space>",self.pausePlay)
-        #self.bind("<Configure>",self.test)
-        #self.refresh ()
+        self.refresh()
+
+        # Resizes the Album Cover upon resizing the window
+        self.canvasAlbum.bind('<Configure>', self.fillArt)
 
         #there should be a set directory button for the whole application
 
@@ -200,11 +200,9 @@ class Window(tkinter.Tk):
         self.filtered_songs = []
         #self.update_search_results()
 
-    def test(self, event):
-        print("called")
-
     #this function is called once the size of the window is rendered, then unbinds itself
     def initLoadSongs(self, event):
+        self.loadSongs()
         if self.text.winfo_width() > 1 and self.text.winfo_height() > 1:
             self.loadSongsIntoFrame(self.songs)
             self.unbind('<Visibility>')
@@ -241,7 +239,7 @@ class Window(tkinter.Tk):
         dummyframe = tkinter.Frame()
         dummyframe.grid_columnconfigure(0,weight=1)
         dummyframe.grid_rowconfigure(0,weight=1)
-        button = tkinter.Button(dummyframe,text="New Playlist",command=partial(self.newPlaylist,self))
+        button = tkinter.Button(dummyframe,text="New Playlist", bg="SystemButtonFace",command=partial(self.newPlaylist,self))
         button.grid(row=0,column=0,sticky="nsew")
         dummyframe.grid_propagate(0)
         dummyframe["width"] = self.text.winfo_width()
@@ -510,12 +508,17 @@ class Window(tkinter.Tk):
             #resets and fills the left frame's canvas with the album cover
             self.canvasAlbum.delete("all")
             self.canvasAlbum.grid_remove()
+
+            # Imports the album cover into the left frame if the MP3 has an associated cover
             if self.songQueued["Image"]:
-                # self.canvasAlbum.pack(side = "left", fill = "both", expand = True ,padx=2,pady=2)
-                self.canvasAlbum.config(width=640,height=640)
+                # self.canvasAlbum.pack(side = "left", fill = "both", expand = True)
+                # self.canvasAlbum.config(width=640, height=640)
                 self.canvasAlbum.grid(row=0, column=0, rowspan=3, columnspan=3)
-                self.albumimg = ImageTk.PhotoImage(Image.open(f"..\\imgs\\{self.songQueued['id']} - {self.songQueued['Title']} - {self.songQueued['Artist']}().jpg"))
-                self.canvasAlbum.create_image(0, 0, anchor="nw", image=self.albumimg)
+                self.albumImg = Image.open(f"..\\imgs\\{self.songQueued['id']} - {self.songQueued['Title']} - {self.songQueued['Artist']}().jpg").resize((self.canvasAlbum.winfo_width(), self.canvasAlbum.winfo_height()))
+                self.albumImg_tk = ImageTk.PhotoImage(self.albumImg)
+                self.canvasAlbum.create_image(0,0, anchor='nw', image=self.albumImg_tk)
+
+            # Displays the album icon if the MP3 does not have an associated cover
             else:
                 self.genAlbumIcon(2)
                 self.canvasAlbum.grid(row=1, column=1, rowspan=1, columnspan=1)
@@ -583,7 +586,7 @@ class Window(tkinter.Tk):
             self.rowconfigure(i,weight=1, uniform='row')
         for i in range(2):
             self.columnconfigure(i,weight=1,uniform='column')
-        self.frames["left"].grid(row=0, column=0, padx=1, pady=1,sticky="nsew",rowspan=5)
+        self.frames["left"].grid(row=0, column=0, sticky="nsew",rowspan=5)
         self.frames["left"].grid_rowconfigure(0, weight=1)
         self.frames["left"].grid_columnconfigure(0, weight=1)
         self.frames["left"].grid_rowconfigure(1, weight=1)
@@ -609,10 +612,10 @@ class Window(tkinter.Tk):
         self.refreshCanvases()
 
         #seek bar
-        self.seek.grid(row=1, column=3,columnspan=2,sticky="nsew")
+        self.seek.grid(row=1, column=3,columnspan=2,sticky="nsew",pady=2)
         
         #volume slider
-        self.volume.grid(row=1, column=5,columnspan=2,sticky="nsew")
+        self.volume.grid(row=1, column=5,columnspan=2,sticky="nsew",pady=2)
         self.loopButton.grid(row=0,column=5,sticky="nsew")
 
         self.tabButtons.grid(row=0,column=0,columnspan=2,sticky="nsew")
@@ -628,14 +631,21 @@ class Window(tkinter.Tk):
         for i in range(self.grid_size()[1]):
             self.grid_rowconfigure(i,weight=1)
 
-    def resize_event(self, event):
-        width = event.width
-        height = event.height
+    def fillArt(self, event):
+        # print("resized")
+        global resizedAlbumImg_tk
+        width = int(self.frames["left"].winfo_width())
+        height = int(width)
 
-        # Ensure the "left" frame is always a square
-        size = min(width, height)
-        self.frames["left"].config(width=size, height=size)
-        self.frames["left"].update_idletasks()  # Force update
+        resizedAlbumImg = self.albumImg.resize((width, height))
+        resizedAlbumImg_tk = ImageTk.PhotoImage(resizedAlbumImg)
+        self.canvasAlbum.create_image(
+            int(width/2),
+            int(height/2),
+            anchor = 'center',
+            image = resizedAlbumImg_tk
+        )
+        self.canvasAlbum.config(width=width, height=height)
 
     # a refresh for only the canvases (buttons and album cover)
     def refreshCanvases(self):
