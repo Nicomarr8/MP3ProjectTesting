@@ -79,6 +79,7 @@ class Window(tkinter.Tk):
         #frames
         self.frames["left"] = tkinter.Frame(self,bg = "#333333")
         self.frames["right"] = tkinter.Frame(self,bg = "#333333")
+        self.frames["innerRight"] = tkinter.Frame(self.frames["right"],bg = "#333333")
         self.frames["down"] = tkinter.Frame(self,bg = "white")
         
         #Load settings at the beginning of your program
@@ -105,12 +106,13 @@ class Window(tkinter.Tk):
         # the above line needs to be fixed so that it loads the directory and sets it and stuff
 
         #stylize the scrollbar with witchcraft and wizardry
-        style=ttk.Style()
-        style.theme_use('classic')
-        style.configure("Vertical.TScrollbar", background="grey", bordercolor="black", arrowcolor="white")
-        self.scrollbar = ttk.Scrollbar(self.frames["right"], orient="vertical")
-        self.text = tkinter.Text(self.frames["right"],yscrollcommand=self.scrollbar.set,bg = "#aaaaaa",state="disabled")
-        self.scrollbar.config(command=self.text.yview)
+        # style=ttk.Style()
+        # style.theme_use('classic')
+        # style.configure("Vertical.TScale", background="grey", bordercolor="black", arrowcolor="white")
+        # self.scrollbar = ttk.Scrollbar(self.frames["right"], orient="vertical")
+        # self.scrollbar.config(command=#self.text.yview)
+
+        self.scrollbar = tkinter.Scale(self.frames["right"], from_=0, to =100, orient="vertical", command=self.scrollRightFrame, showvalue=0)
         #album default icon
         self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="#333333", bd=0, highlightthickness=0)
         self.genAlbumIcon(2)
@@ -203,14 +205,14 @@ class Window(tkinter.Tk):
     #this function is called once the size of the window is rendered, then unbinds itself
     def initLoadSongs(self, event):
         self.loadSongs()
-        if self.text.winfo_width() > 1 and self.text.winfo_height() > 1:
+        if self.frames["innerRight"].winfo_width() > 1 and self.frames["innerRight"].winfo_height() > 1:
             self.loadSongsIntoFrame(self.songs)
             self.unbind('<Visibility>')
 
     #this loads the playlists into the window
     def loadPlaylistsIntoFrame(self):
         #code to clear the window of previous buttons
-        self.text["state"] = "normal"
+        ##self.text["state"] = "normal"
         self.removeButtons()
         self.songButtons.clear()
         #for loop for every playlist
@@ -229,11 +231,11 @@ class Window(tkinter.Tk):
                 deleteButton.grid(row=0,column=1,sticky="nsew")
             #this is to set the size of the frame correctly
             self.dummyframe.grid_propagate(0)
-            self.dummyframe["width"] = self.text.winfo_width()
-            self.dummyframe["height"] = self.text.winfo_height()/20
+            self.dummyframe["width"] =  10 ##self.text.winfo_width()
+            self.dummyframe["height"] = 10 ##self.text.winfo_height()/20
             #this puts the frame in the correct palce on the window
-            self.text.window_create("end",window=self.dummyframe)
-            self.text.insert("end", "\n")
+            ##self.text.window_create("end",window=self.dummyframe)
+            #self.text.insert("end", "\n")
             self.songButtons.append(button)
         #all of this is for the add playlist button
         self.dummyframe = tkinter.Frame()
@@ -242,13 +244,13 @@ class Window(tkinter.Tk):
         button = tkinter.Button(self.dummyframe,text="New Playlist", bg="SystemButtonFace",command=partial(self.newPlaylist,self))
         button.grid(row=0,column=0,sticky="nsew")
         self.dummyframe.grid_propagate(0)
-        self.dummyframe["width"] = self.text.winfo_width()
-        self.dummyframe["height"] = self.text.winfo_height()/20
-        self.text.window_create("end",window=self.dummyframe)
-        self.text.insert("end", "\n")
+        self.dummyframe["width"] = 10 #self.text.winfo_width()
+        self.dummyframe["height"] = 20 #self.text.winfo_height()/20
+        #self.text.window_create("end",window=self.dummyframe)
+        #self.text.insert("end", "\n")
         self.songButtons.append(button)
         #re disable the text box so that teh buttons can't be removed with a backspace
-        self.text["state"] = "disabled"
+        #self.text["state"] = "disabled"
 
     #function to delete playlists
     def deletePlaylist(self,name):
@@ -278,7 +280,7 @@ class Window(tkinter.Tk):
 
     #function to load search box into the window correctly
     def loadSearchIntoFrame(self):
-        self.text["state"] = "normal"
+        #self.text["state"] = "normal"
         self.removeButtons()
         self.songButtons.clear()
         # Search bar and search button
@@ -297,10 +299,10 @@ class Window(tkinter.Tk):
         self.search_results.grid(row=1, column=0, columnspan=2,sticky="nsew")
         self.search_results.bind("<<ListboxSelect>>", self.select_song)
         dummyFrame.grid_propagate(0)
-        dummyFrame["width"] = self.text.winfo_width()
-        dummyFrame["height"] = self.text.winfo_height()
-        self.text.window_create("end",window=dummyFrame)
-        self.text["state"] = "disabled"
+        dummyFrame["width"] = 10 #self.text.winfo_width()
+        dummyFrame["height"] = 20 #self.text.winfo_height()
+        #self.text.window_create("end",window=dummyFrame)
+        #self.text["state"] = "disabled"
 
     def search_song(self,event = None):
         query = self.search_entry.get().strip().lower()
@@ -461,14 +463,16 @@ class Window(tkinter.Tk):
                 playlists[button["text"].replace("Add to ","")].append(song)
                 button["text"] = "Remove from " + button["text"].replace("Add to ","")
 
+    #function to scroll the right frame
+    def scrollRightFrame(self,event):
+        pass # have cases for each screen thing
 
     #loads songs into the right frame tkinter frame
-    def loadSongsIntoFrame(self,songlist = []):
-        self.text["state"] = "normal"
+    def loadSongsIntoFrame(self,songlist = [], index = 0):
         self.removeButtons()
         self.songButtons.clear()
         for i in range(len(songlist)):
-            self.dummyframe = tkinter.Frame()
+            self.dummyframe = tkinter.Frame(self.frames["innerRight"]) #replace with list of all frames
             self.dummyframe.grid_columnconfigure(0,weight=1)
             self.dummyframe.grid_columnconfigure(1,weight=0)
             self.dummyframe.grid_rowconfigure(0,weight=1)
@@ -491,27 +495,34 @@ class Window(tkinter.Tk):
             button.grid(row=0,column=0,sticky="nsew")
             playlistButton.grid(row=0,column=1,sticky="nsew")
             self.dummyframe.grid_propagate(0)
-            self.dummyframe["width"] = self.text.winfo_width()
+            self.dummyframe["width"] = self.frames["innerRight"].winfo_width()
 
-            self.dummyframe.bind('<Configure>', self.fillSongs)
+            #self.dummyframe.bind('<Configure>', self.fillSongs)
             # dummyframe["width"] = self.frames["right"].winfo_width()
-            self.dummyframe["height"] = self.text.winfo_height()/20
-            self.text.window_create("end", window=self.dummyframe)
-            if (i < len(songlist) - 1):
-                self.text.insert("end", "\n")
+            self.dummyframe["height"] = self.frames["innerRight"].winfo_height()/20
+            self.dummyframe.grid(row=i,column=0)
 
             # Append the button to the songButtons array
             self.songButtons.append(button)
+            if len(self.songButtons) > 20: break
+        if len(self.songButtons) > 20:
+            self.frames["innerRight"].grid_remove()
+            self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
+            self.scrollbar.grid(row=1,column=3,sticky="nsew")
+            self.scrollbar.config(to = len(self.songButtons))
+        else:
+            self.scrollbar.grid_remove()
+            self.frames["innerRight"].grid_remove()
+            self.frames["innerRight"].grid(row=1,column=0,columnspan=3,sticky="nsew")
 
             # Ensures tabs at the top of the screen are visible
             # self.tabButtons.grid.
 
-        self.text["state"] = "disabled"
 
         #self.songs = [song for song in self.songs if song in self.favorites]
 
     def removeButtons(self):
-        self.text.delete(1.0,"end")
+        #self.text.delete(1.0,"end")
         self.songButtons = []
         # pass
 
@@ -621,9 +632,9 @@ class Window(tkinter.Tk):
             self.frames["down"].grid_columnconfigure(i, weight=1,uniform="column")
         for i in range(2):
             self.frames["down"].grid_rowconfigure(i, weight=1)
+        self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
 
-        self.text.grid(row=1,column=0,sticky="nsew",pady=(0,20))
-        self.scrollbar.grid(row=1,column=1,sticky="nsew")
+        self.scrollbar.grid(row=1,column=2,sticky="nsew")
 
         #tag info
         self.tagInfo.grid(row=1,column=0,columnspan=3,sticky="nsew")
@@ -638,7 +649,7 @@ class Window(tkinter.Tk):
         self.volume.grid(row=1, column=5,columnspan=2,sticky="nsew",pady=2)
         self.loopButton.grid(row=0,column=5,sticky="nsew")
 
-        self.tabButtons.grid(row=0,column=0,columnspan=2,sticky="nsew")
+        self.tabButtons.grid(row=0,column=0,columnspan=3,sticky="nsew")
         self.tabButtons.grid_rowconfigure(0,weight=0)
         for i in range(len(self.tabs)):
             self.tabButtons.grid_columnconfigure(i,weight=1)
@@ -669,7 +680,7 @@ class Window(tkinter.Tk):
 
     def fillSongs(self, event):
         width = int(self.frames["right"].winfo_width()) - self.scrollbar.winfo_width()
-        height = int(self.text.winfo_height()/20)
+        height = int(20)#self.text.winfo_height()/20)
         # print("resized buttons")
            
         for i in range(len(self.songButtons)):
@@ -855,222 +866,10 @@ class Window(tkinter.Tk):
                 self.queueSong(self.songs[0]["id"])
             else:
                 self.queueSong(self.songs[index + 1]["id"])
-        #old function
-        #if -1 < self.songQueued["id"] + direction < len(self.songs):
-         #   self.queueSong(self.songs[self.songQueued["id"] + direction]["id"])
-    # This is code I tried to add  
-          
-      #  elif self.songQueued["id"] + direction <= -1:
-       #     self.queueSong(self.songs[len(self.songs)-1]["id"])
-       # elif self.songQueued["id"] + direction > len(self.songs)-1:
-       #     self.queueSong(self.songs[0]["id"])
-    
-#     # This is the function for the next and previous buttons
-#     def moveSong(self, direction):
-#         if self.favorites_mode:
-#             current_index = self.get_favorite_index(self.songQueued["id"])
-#             if current_index is not None:
-#                 new_index = (current_index + direction) % len(self.favorites)
-#                 new_song_id = self.favorites[new_index]["id"]
-#                 self.queueSong(new_song_id)
-                
-#             else:
-#                 pass  
-#         else:
-#             new_index = (self.songQueued["id"] + direction) % len(self.songs)
-#             self.queueSong(self.songs[new_index]["id"])  
     def moveSeek(self, event):
         self.seek.config(label=f"{int(self.seek.get() / 60):02d}:{int((float(self.seek.get() / 60) - int(self.seek.get() / 60)) * 60 ):02d}")
         if self.seek.get() == int(self.songQueued["Length"]) and not self.paused:
             self.moveSong(1)
-            #self.ListboxHighlightPlaying()
-          #  self.Queue_listbox.selection_clear(0,tkinter.END)
-            #self.currentSong += 1
-          #  self.Queue_listbox.selection_set(self.currentSong)
-
-    # def createListbox(self):
-    #     self.listbox_scrollbar = tkinter.Scrollbar(self.frames["down"],orient = "vertical")
-    #     self.Queue_listbox = tkinter.Listbox(self.frames["down"], bg = "white", yscrollcommand=self.listbox_scrollbar.set)   
-    #    # self.Queue_listbox.insert(tkinter.END, "SongQueue")
-    #     self.Queue_listbox.config(yscrollcommand=self.listbox_scrollbar.set)        
-    #     self.listbox_scrollbar.config(command=self.Queue_listbox.yview)
-    #     self.Queue_listbox.grid(row=2, column =3,rowspan=2, sticky ="nsew") 
-    #     self.listbox_scrollbar.grid(row=2, column=4,rowspan=2,sticky="nsw")   
-
-    # def loadIntoListbox(self):
-    #     #Populates the listbox 
-    #     listbox_items = self.Queue_listbox.get(0,tkinter.END)
-    #     for song in self.songs:
-    #         song_key = f"{song['id']}: {song['Title']}-{song['Artist']}"
-    #         if song_key not in listbox_items:
-    #            self.Queue_listbox.insert(tkinter.END,song_key)
-               
-
-    # def buttonListbox(self):
-    #  # made the buttons show up 
-    #  self.btnAddToListbox =  tkinter.Button(self.frames["down"], text = "Add",bg="SystemButtonFace", activebackground="Black", fg="Black", command = self.addSong).grid(row=2, column=4)
-    #  self.btnDeleteToListbox =  tkinter.Button(self.frames["down"], text = "Delete",bg="SystemButtonFace", activebackground="Black", fg="Black", command = self.deleteSong).grid(row=3, column=4)
-    #  self.btnUpToListbox = tkinter.Button(self.frames["down"], text = "↑",bg="SystemButtonFace", activebackground="Black", fg="Black",command = self.upListbox).grid(row=2, column=2, sticky="nes")
-    #  self.btnDownToListbox = tkinter.Button(self.frames["down"], text = "↓",bg="SystemButtonFace", activebackground="Black", fg="Black",command = self.downListBox).grid(row=3, column=2, sticky="nes")
-    #  self.grid_columnconfigure(0,weight=1)
-    #  self.grid_rowconfigure(1,weight=0)
-    #  self.grid_rowconfigure(2,weight=1)
-    #  #Click  
-    # # def myClick(self):
-    # #     self.btnAddToListbox = tkinter.Label(self.frames["down"], text = "Add",bg="SystemButtonFace", activebackground="Black", fg="Black").grid(row=1, column=5)
-    # # def myRelease(self):
-    # def addSong(self):
-    #     #this function needs some work
-    #     # put the selected song into the queue
-    #     file_path = filedialog.askopenfilename()
-
-    #     #need to change file_path to be ID
-    #     #file Selector
-    #     #FileName Change
-    #     #self.queueSong(file_path)
-    #     i = file_path
-    #     #For testing purposes
-    #     #print("THIS IS THE FILEPATH",file_path)
-    #     if i.lower().endswith(".mp3"):
-    #         mp3 = eyed3.load(file_path)
-
-    #         if mp3:
-    #             trackTitle = mp3.tag.title
-    #             trackArtist = mp3.tag.artist
-    #             trackAlbum = mp3.tag.album
-    #             trackRD = mp3.tag.getBestDate()
-    #             trackImage = False
-    #         else:
-    #             print("Error loading MP3")
-
-    #         try: 
-    #             trackTime = mp3.info.time_secs
-    #         except:
-    #             trackTime = 0
-
-    #         #this generates the imgs from the mp3s
-    #         if mp3.tag.images:
-    #             for image in mp3.tag.images:
-    #                 image_file = open(f"..\\imgs\\{self.idCounter} - {trackTitle} - {trackArtist}().jpg","wb+")
-    #                 image_file.write(image.image_data)
-    #                 image_file.close()
-    #                 trackImage = True
-    #         else:
-    #             self.canvasAlbum.delete("all")
-    #             self.canvasAlbum.grid_remove()
-    #             self.canvasAlbum.grid(row=1,column=1)
-    #             # self.canvasAlbum.pack(side = "left", fill = "both", expand = True ,padx=2,pady=2)
-    #             self.genAlbumIcon(2)
-    #             trackImage = False
-    #         # doesn't have error handling
-
-    #         #This append function prevents the program from loading mp3 files that have no image, because each ID in the array must include a value for trackImage # self directory used to be just i
-    #     self.songs.append({"id":self.idCounter,"Title":trackTitle,"Artist":trackArtist,"Album":trackAlbum,"Release":trackRD,"Image":trackImage,"Directory":i,"Length":trackTime})
-    #         # print(mp3.info.time_secs, end = " | ")
-    #     self.idCounter += 1
-    #     #Get the last added song's index (assumming 0-based indexing)
-    #     new_song_index = len(self.songs) - 1
-  
-    #     #if you just clear it just going to add up
-    #     #same list initiially loads on runtime
-    #     #find a way to clear self.songs and add to queue
-    #     #make a new Queue
-    #     song_key = f"{self.songs[new_song_index]['id']}: {self.songs[new_song_index]['Title']}-{self.songs[new_song_index]['Artist']}"
-    #     self.Queue_listbox.insert(tkinter.END,song_key)
-    #     #add song adjust to song currently being played
-
-    # def deleteSong(self):
-    #     current = self.Queue_listbox.curselection() 
-    #     current = int(current[0])# convert to int
-
-    #     if 0 <= current <= self.Queue_listbox.size():
-    #         item_text = self.Queue_listbox.get(current)
-    #         self.Queue_listbox.delete(current)
-
-    #     targetId = item_text[0].split(":",1)[0]
-        
-    #     for song in self.songs:
-         
-    #         if str(song["id"]) == targetId:
-    #             self.songs.remove(song)
-    #            # Prints the song removed for testing/ info
-    #            # print(self.songs)
-
-    # def upListbox(self):
-    #     current = self.Queue_listbox.curselection() 
-
-    #     if not current:#check if there is a selection
-    #         return
-
-    #     current = int(current[0])# convert to int
-
-    #     if current == 0: # check to see if song already at top
-    #         return 
-    #     if 0 < current <= self.Queue_listbox.size():
-    #         item_text = self.Queue_listbox.get(current)
-    #         self.Queue_listbox.delete(current)
-    #     insert_index = current - 1 
-
-    #     if insert_index < 0:# position 1 is the first songs
-    #         insert_index = 0
-
-    #     self.Queue_listbox.insert(insert_index,item_text)
-       
-    #     #take text we have split it whereever we see a collun
-    #     # take the first half of it
-    #     targetId = item_text[0].split(":",1)[0]
-        
-    #     for song in self.songs:
-         
-    #         if str(song["id"]) == targetId:
-    #             self.songs.remove(song)
-    #             self.songs.insert(insert_index,song)
-
-
-    # def downListBox(self):
-    #     current = self.Queue_listbox.curselection() 
-
-    #     if not current:#check if there is a selection
-    #         return
-
-    #     current = int(current[0])# convert to int
-
-    #     if 0 <= current <= self.Queue_listbox.size():
-    #         item_text = self.Queue_listbox.get(current)
-    #         self.Queue_listbox.delete(current)
-    #     insert_index = current + 1 
-
-    #     if insert_index == self.Queue_listbox.size() -1: # position 1 is the first songs
-    #         insert_index = self.Queue_listbox.size() -1
-
-    #     self.Queue_listbox.insert(insert_index,item_text)
-       
-    #     #take text we have split it where ever we see a collun
-    #     # take the first half of it
-    #     targetId = item_text[0].split(":",1)[0]
-        
-    #     for song in self.songs:
-         
-    #         if str(song["id"]) == targetId:
-    #             self.songs.remove(song)
-    #             self.songs.insert(insert_index,song)
-
-    # def ListboxRemoveOldSongs(self):
-    #     for song in self.songs:
-    #         self.Queue_listbox.delete(0)
-
-    # def ListboxHighlightPlaying(self):
-
-    #     currentSong = self.songQueued
-        
-    #     for index, song in enumerate(self.songs):
-    #         # for Testing
-    #         #print("THE CURRENT SONG",song) 
-    #         #print("THE current index is",index)
-    #         if song["id"]== currentSong["id"]:
-    #             self.Queue_listbox.selection_clear(0,tkinter.END)
-    #             self.Queue_listbox.selection_set(index)
-    #             break
 
 # this runs the whole file
 Window().mainloop()
