@@ -29,7 +29,7 @@ class Window(tkinter.Tk):
 
         #Configure application geometry
         self.geometry(f"{int(self.winfo_screenwidth() * (3/4))}x{int(self.winfo_screenheight() * (3/4))}")
-        self.minsize(480, 480)
+        self.minsize(800, 480)
         self.configure(background = "gray")
         self.buttonImages = {}
         self.canvases = {}
@@ -72,7 +72,7 @@ class Window(tkinter.Tk):
                 "developer": False,
                 # "Information about the app"
                 },
-            "Playlists": {"likedSongs":[]},
+            "Playlists": {"Playing Queue":[], "Liked Songs":[],},
             "Directory":""
         }
 
@@ -216,35 +216,35 @@ class Window(tkinter.Tk):
         #for loop for every playlist
         for i in self.playlists.keys():
             #dummy frame to hold the playlist button and potential delete playlist button
-            dummyframe = tkinter.Frame()
-            dummyframe.grid_columnconfigure(0,weight=1)
-            dummyframe.grid_rowconfigure(0,weight=1)
+            self.dummyframe = tkinter.Frame()
+            self.dummyframe.grid_columnconfigure(0,weight=1)
+            self.dummyframe.grid_rowconfigure(0,weight=1)
             #this is the actual playlist button
-            button = tkinter.Button(dummyframe,text=i,command=partial(self.loadSongsIntoFrame,self.playlists[i]))
+            button = tkinter.Button(self.dummyframe,text=i,command=partial(self.loadSongsIntoFrame,self.playlists[i]))
             button.grid(row=0,column=0,sticky="nsew")
             #only allow delete button if it's not liked songs, that playlsit can't be deleted
-            if button['text'] != "likedSongs":
-                dummyframe.grid_columnconfigure(1,weight=1)
-                deleteButton = tkinter.Button(dummyframe,text="Delete Playlist",command=partial(self.deletePlaylist,i))
+            if button['text'] != "Liked Songs" and button['text'] != "Playing Queue":
+                self.dummyframe.grid_columnconfigure(1,weight=1)
+                deleteButton = tkinter.Button(self.dummyframe,text="Delete Playlist",command=partial(self.deletePlaylist,i))
                 deleteButton.grid(row=0,column=1,sticky="nsew")
             #this is to set the size of the frame correctly
-            dummyframe.grid_propagate(0)
-            dummyframe["width"] = self.text.winfo_width()
-            dummyframe["height"] = self.text.winfo_height()/20
+            self.dummyframe.grid_propagate(0)
+            self.dummyframe["width"] = self.text.winfo_width()
+            self.dummyframe["height"] = self.text.winfo_height()/20
             #this puts the frame in the correct palce on the window
-            self.text.window_create("end",window=dummyframe)
+            self.text.window_create("end",window=self.dummyframe)
             self.text.insert("end", "\n")
             self.songButtons.append(button)
         #all of this is for the add playlist button
-        dummyframe = tkinter.Frame()
-        dummyframe.grid_columnconfigure(0,weight=1)
-        dummyframe.grid_rowconfigure(0,weight=1)
-        button = tkinter.Button(dummyframe,text="New Playlist", bg="SystemButtonFace",command=partial(self.newPlaylist,self))
+        self.dummyframe = tkinter.Frame()
+        self.dummyframe.grid_columnconfigure(0,weight=1)
+        self.dummyframe.grid_rowconfigure(0,weight=1)
+        button = tkinter.Button(self.dummyframe,text="New Playlist", bg="SystemButtonFace",command=partial(self.newPlaylist,self))
         button.grid(row=0,column=0,sticky="nsew")
-        dummyframe.grid_propagate(0)
-        dummyframe["width"] = self.text.winfo_width()
-        dummyframe["height"] = self.text.winfo_height()/20
-        self.text.window_create("end",window=dummyframe)
+        self.dummyframe.grid_propagate(0)
+        self.dummyframe["width"] = self.text.winfo_width()
+        self.dummyframe["height"] = self.text.winfo_height()/20
+        self.text.window_create("end",window=self.dummyframe)
         self.text.insert("end", "\n")
         self.songButtons.append(button)
         #re disable the text box so that teh buttons can't be removed with a backspace
@@ -406,6 +406,8 @@ class Window(tkinter.Tk):
                                 image_file.write(image.image_data)
                                 image_file.close()
                                 trackImage = True
+                            # for image in mp3.tag.images:
+                            #     trackImage = True
                         except:
                             trackImage = False
                             self.canvasAlbum.delete("all")
@@ -466,26 +468,44 @@ class Window(tkinter.Tk):
         self.removeButtons()
         self.songButtons.clear()
         for i in range(len(songlist)):
-            dummyframe = tkinter.Frame()
-            dummyframe.grid_columnconfigure(0,weight=1)
-            dummyframe.grid_columnconfigure(1,weight=0)
-            dummyframe.grid_rowconfigure(0,weight=1)
-            playlistButton = tkinter.Button(dummyframe,text="Add to Playlist",command=partial(self.selectPlaylist,songlist[i],self.playlists))
-            button = tkinter.Button(dummyframe,text=f" {songlist[i]['Title']} | {songlist[i]['Artist']} | {songlist[i]['Album']}", anchor="w", command=partial(self.queueSong, songlist[i]["id"]), bg="white", activebackground="grey", fg="black", width=(dummyframe.winfo_width()-playlistButton.winfo_width()))
+            self.dummyframe = tkinter.Frame()
+            self.dummyframe.grid_columnconfigure(0,weight=1)
+            self.dummyframe.grid_columnconfigure(1,weight=0)
+            self.dummyframe.grid_rowconfigure(0,weight=1)
+
+            playlistButton = tkinter.Button(self.dummyframe,
+                                            text="Add to Playlist",
+                                            command=partial(self.selectPlaylist,songlist[i],self.playlists),
+                                        )
+            button = tkinter.Button(self.dummyframe,
+                                    text=f" {songlist[i]['Title']} | {songlist[i]['Artist']} | {songlist[i]['Album']}",
+                                    anchor="w",
+                                    command=partial(self.queueSong, songlist[i]["id"]),
+                                    bg="white",
+                                    activebackground="grey",
+                                    fg="black",
+                                    width=(self.dummyframe.winfo_width()-playlistButton.winfo_width()),
+                                )
             if songlist[i] not in self.songs:
                 button["state"] = "disabled"
             button.grid(row=0,column=0,sticky="nsew")
-            playlistButton.grid(row=0,column=1,sticky="nse")
-            dummyframe.grid_propagate(0)
-            dummyframe["width"] = self.text.winfo_width()
+            playlistButton.grid(row=0,column=1,sticky="nsew")
+            self.dummyframe.grid_propagate(0)
+            self.dummyframe["width"] = self.text.winfo_width()
+
+            self.dummyframe.bind('<Configure>', self.fillSongs)
             # dummyframe["width"] = self.frames["right"].winfo_width()
-            dummyframe["height"] = self.text.winfo_height()/20
-            self.text.window_create("end", window=dummyframe)
+            self.dummyframe["height"] = self.text.winfo_height()/20
+            self.text.window_create("end", window=self.dummyframe)
             if (i < len(songlist) - 1):
                 self.text.insert("end", "\n")
 
             # Append the button to the songButtons array
             self.songButtons.append(button)
+
+            # Ensures tabs at the top of the screen are visible
+            # self.tabButtons.grid.
+
         self.text["state"] = "disabled"
 
         #self.songs = [song for song in self.songs if song in self.favorites]
@@ -619,7 +639,7 @@ class Window(tkinter.Tk):
         self.loopButton.grid(row=0,column=5,sticky="nsew")
 
         self.tabButtons.grid(row=0,column=0,columnspan=2,sticky="nsew")
-        self.tabButtons.grid_rowconfigure(0,weight=1)
+        self.tabButtons.grid_rowconfigure(0,weight=0)
         for i in range(len(self.tabs)):
             self.tabButtons.grid_columnconfigure(i,weight=1)
             self.tabs[i].grid(row=0,column=i,sticky="nsew")
@@ -646,6 +666,15 @@ class Window(tkinter.Tk):
             image = resizedAlbumImg_tk
         )
         self.canvasAlbum.config(width=width, height=height)
+
+    def fillSongs(self, event):
+        width = int(self.frames["right"].winfo_width()) - self.scrollbar.winfo_width()
+        height = int(self.text.winfo_height()/20)
+        # print("resized buttons")
+           
+        for i in range(len(self.songButtons)):
+            self.dummyframe["width"] = width
+            self.dummyframe["height"] = height
 
     # a refresh for only the canvases (buttons and album cover)
     def refreshCanvases(self):
