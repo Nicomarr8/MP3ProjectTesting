@@ -483,11 +483,13 @@ class Window(tkinter.Tk):
                 playlists[button["text"].replace("Add to ","")].append(song)
                 button["text"] = "Remove from " + button["text"].replace("Add to ","")
 
+    #function to handle scrolling the mousewheel and connect it to the scrollbar
     def scrollItems(self,event):
+        #should add something in here to try and adjust the distance travelled by it depending on the intesity to minimize the number of function calls
         if event.delta > 0 and self.scrollbar.get() > 0:
-            self.scrollbar.set(self.scrollbar.get()-1)
+            self.scrollbar.set(self.scrollbar.get()-int(event.delta/120))
         elif event.delta < 0 and self.scrollbar.get() < self.scrollbar.cget("to"):
-            self.scrollbar.set(self.scrollbar.get()+1)
+            self.scrollbar.set(self.scrollbar.get()-int(event.delta/120))
 
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self,songlist = [], index = 0):
