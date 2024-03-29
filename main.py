@@ -48,6 +48,7 @@ class Window(tkinter.Tk):
         self.scrollSpeed = 50
         self.labelIndex = 0
         self.songLabel = []
+        self.albumImg = None
 
         #Creates a path to the user's local Music directory
         self.music_directory_path = os.path.join(os.path.join(os.path.expanduser ("~"), "Music"), "Pufferfish_Music")
@@ -117,7 +118,6 @@ class Window(tkinter.Tk):
         #album default icon
         self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="#333333", bd=0, highlightthickness=0)
         self.genAlbumIcon(2)
-
         self.buttonFactor = 0.4
         #prev button
         self.genPrevButton(self.buttonFactor)
@@ -177,8 +177,9 @@ class Window(tkinter.Tk):
             self.current_settings["Directory"] = self.directory
 
             #self.ListboxRemoveOldSongs()
-            self.loadSongs()
-            self.loadSongsIntoFrame(self.songs)
+            # idk why these were here but they're not needed
+            # self.loadSongs()
+            # self.loadSongsIntoFrame(self.songs)
 
             #self.ListboxHighlightPlaying()
             #self.Queue_listbox.selection_clear(0,tkinter.END)
@@ -380,6 +381,7 @@ class Window(tkinter.Tk):
             else: 
                 for i in range(len(fileNames)):
                     if fileNames[i].lower().endswith(".mp3"):
+                        # the invalid date erros come from this, and uh, tbh idk how to change that but it's fine
                         mp3 = eyed3.load(self.directory + "\\" + fileNames[i])
 
                         if mp3:
@@ -406,7 +408,6 @@ class Window(tkinter.Tk):
                             # try:
                             #     if not mp3.tag.getBestDate():
                             #         raise Exception("dummyExcept")
-                                
                             #     trackRD = mp3.tag.getBestDate()
                             # except:
                             #     trackRD = "Unknown"
@@ -501,7 +502,7 @@ class Window(tkinter.Tk):
             self.frames["innerRight"].grid_remove()
             self.frames["innerRight"].grid(row=1,column=0,columnspan=3,sticky="nsew")
 
-        self.scrollbar.config(command=partial(self.loadSongsIntoFrame,self.songs))
+        self.scrollbar.config(command=partial(self.loadSongsIntoFrame,songlist))
         index = int(index)
         if index == 0: self.scrollbar.set(0)
         elif len(songlist) - 20 <= 100: 
@@ -696,19 +697,20 @@ class Window(tkinter.Tk):
 
     def fillArt(self, event):
         # print("resized")
-        global resizedAlbumImg_tk
-        width = int(self.frames["left"].winfo_width())
-        height = int(width)
+        if self.albumImg:
+            global resizedAlbumImg_tk
+            width = int(self.frames["left"].winfo_width())
+            height = int(width)
 
-        resizedAlbumImg = self.albumImg.resize((width, height))
-        resizedAlbumImg_tk = ImageTk.PhotoImage(resizedAlbumImg)
-        self.canvasAlbum.create_image(
-            int(width/2),
-            int(height/2),
-            anchor = 'center',
-            image = resizedAlbumImg_tk
-        )
-        self.canvasAlbum.config(width=width, height=height)
+            resizedAlbumImg = self.albumImg.resize((width, height))
+            resizedAlbumImg_tk = ImageTk.PhotoImage(resizedAlbumImg)
+            self.canvasAlbum.create_image(
+                int(width/2),
+                int(height/2),
+                anchor = 'center',
+                image = resizedAlbumImg_tk
+            )
+            self.canvasAlbum.config(width=width, height=height)
 
     def fillSongs(self, event):
         width = int(self.frames["right"].winfo_width()) - self.scrollbar.winfo_width()
