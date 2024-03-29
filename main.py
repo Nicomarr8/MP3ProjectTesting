@@ -192,6 +192,7 @@ class Window(tkinter.Tk):
         #this bind ensures the songs are loaded into frame at the right size
         self.bind('<Visibility>',self.initLoadSongs)
         self.bind("<space>",self.pausePlay)
+        self.bind("<MouseWheel>",self.scrollItems)
         self.refresh()
 
         # Resizes the Album Cover upon resizing the window
@@ -464,6 +465,12 @@ class Window(tkinter.Tk):
             elif "Add to " in button["text"]:
                 playlists[button["text"].replace("Add to ","")].append(song)
                 button["text"] = "Remove from " + button["text"].replace("Add to ","")
+
+    def scrollItems(self,event):
+        if event.delta < 0 and self.scrollbar.get() > 0:
+            self.scrollbar.set(self.scrollbar.get()-1)
+        elif event.delta > 0 and self.scrollbar.get() < self.scrollbar.cget("to"):
+            self.scrollbar.set(self.scrollbar.get()+1)
 
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self,songlist = [], index = 0):
