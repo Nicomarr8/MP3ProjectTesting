@@ -112,7 +112,8 @@ class Window(tkinter.Tk):
         # self.scrollbar = ttk.Scrollbar(self.frames["right"], orient="vertical")
         # self.scrollbar.config(command=#self.text.yview)
 
-        self.scrollbar = tkinter.Scale(self.frames["right"], from_=0, to =100, orient="vertical", command=self.scrollRightFrame, showvalue=0)
+        self.scrollbar = tkinter.Scale(self.frames["right"], from_=0, to =99, orient="vertical", showvalue=0)
+        self.scrollbar.config(command=partial(self.loadSongsIntoFrame,self.songs))
         #album default icon
         self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="#333333", bd=0, highlightthickness=0)
         self.genAlbumIcon(2)
@@ -204,8 +205,8 @@ class Window(tkinter.Tk):
 
     #this function is called once the size of the window is rendered, then unbinds itself
     def initLoadSongs(self, event):
-        self.loadSongs()
         if self.frames["innerRight"].winfo_width() > 1 and self.frames["innerRight"].winfo_height() > 1:
+            self.loadSongs()
             self.loadSongsIntoFrame(self.songs)
             self.unbind('<Visibility>')
 
@@ -394,7 +395,8 @@ class Window(tkinter.Tk):
                             #     trackRD = "Unknown"
                             trackImage = False
                         else:
-                            break
+                            #bug where this was a break and broken mp3 files would stop loading any good mp3s after them
+                            continue
                             
                         try: 
                             trackTime = mp3.info.time_secs
@@ -463,15 +465,15 @@ class Window(tkinter.Tk):
                 playlists[button["text"].replace("Add to ","")].append(song)
                 button["text"] = "Remove from " + button["text"].replace("Add to ","")
 
-    #function to scroll the right frame
-    def scrollRightFrame(self,event):
-        pass # have cases for each screen thing
-
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self,songlist = [], index = 0):
+        index = int(index)
+        if index == 0: self.scrollbar.set(0)
+        elif len(songlist) - 20 <= 100: index = int((index / 100) * (len(songlist) - 20))
         self.removeButtons()
         self.songButtons.clear()
-        for i in range(len(songlist)):
+        print(index,len(songlist))
+        for i in range(index, len(songlist)):
             self.dummyframe = tkinter.Frame(self.frames["innerRight"]) #replace with list of all frames
             self.dummyframe.grid_columnconfigure(0,weight=1)
             self.dummyframe.grid_columnconfigure(1,weight=0)
@@ -500,16 +502,20 @@ class Window(tkinter.Tk):
             #self.dummyframe.bind('<Configure>', self.fillSongs)
             # dummyframe["width"] = self.frames["right"].winfo_width()
             self.dummyframe["height"] = self.frames["innerRight"].winfo_height()/20
-            self.dummyframe.grid(row=i,column=0)
 
             # Append the button to the songButtons array
             self.songButtons.append(button)
-            if len(self.songButtons) > 20: break
+
+            if len(self.songButtons) <= 20: 
+                self.dummyframe.grid(row=i,column=0)
+
+
         if len(self.songButtons) > 20:
             self.frames["innerRight"].grid_remove()
             self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
             self.scrollbar.grid(row=1,column=3,sticky="nsew")
-            self.scrollbar.config(to = len(self.songButtons))
+            if len(self.songButtons) - 20 > 100: self.scrollbar.config(to=(len(self.songButtons) - 20 -1)) #extra -1 to shift it down to have a 0 base
+            else: self.scrollbar.config(to=99)
         else:
             self.scrollbar.grid_remove()
             self.frames["innerRight"].grid_remove()
@@ -523,6 +529,8 @@ class Window(tkinter.Tk):
 
     def removeButtons(self):
         #self.text.delete(1.0,"end")
+        for i in self.frames["innerRight"].winfo_children():
+            i.grid_remove()
         self.songButtons = []
         # pass
 
