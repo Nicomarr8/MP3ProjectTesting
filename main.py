@@ -467,9 +467,9 @@ class Window(tkinter.Tk):
                 button["text"] = "Remove from " + button["text"].replace("Add to ","")
 
     def scrollItems(self,event):
-        if event.delta < 0 and self.scrollbar.get() > 0:
+        if event.delta > 0 and self.scrollbar.get() > 0:
             self.scrollbar.set(self.scrollbar.get()-1)
-        elif event.delta > 0 and self.scrollbar.get() < self.scrollbar.cget("to"):
+        elif event.delta < 0 and self.scrollbar.get() < self.scrollbar.cget("to"):
             self.scrollbar.set(self.scrollbar.get()+1)
 
     #loads songs into the right frame tkinter frame
