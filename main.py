@@ -212,47 +212,63 @@ class Window(tkinter.Tk):
             self.unbind('<Visibility>')
 
     #this loads the playlists into the window
-    def loadPlaylistsIntoFrame(self):
-        #code to clear the window of previous buttons
-        ##self.text["state"] = "normal"
+    def loadPlaylistsIntoFrame(self, index = 0):
+        if len(self.playlists.keys())+1 > 20:
+            self.frames["innerRight"].grid_remove()
+            self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
+            self.scrollbar.grid(row=1,column=3,sticky="nsew")
+            if len(self.playlists.keys())+1 - 20 > 100: self.scrollbar.config(to=(len(self.playlists.keys())+1 - 20)) #extra -1 to shift it down to have a 0 base
+            else: self.scrollbar.config(to=99)
+        else:
+            #somthn wrong here
+            self.scrollbar.grid_remove()
+            self.frames["innerRight"].grid_remove()
+            self.frames["innerRight"].grid(row=1,column=0,columnspan=3,sticky="nsew")
+        
+        self.scrollbar.config(command=partial(self.loadPlaylistsIntoFrame))
+        index = int(index)
+        if index == 0: self.scrollbar.set(0)
+        elif len(self.playlists.keys())+1 - 20 <= 100:
+            if ((index / 100) * (len(self.playlists.keys())+1 - 20) < 0.5): 
+                index = int((index / 100) * (len(self.playlists.keys())+1 - 20))  
+            else: 
+                index = int((index / 100) * (len(self.playlists.keys())+1 - 20)) +1
         self.removeButtons()
         self.songButtons.clear()
-        #for loop for every playlist
-        for i in self.playlists.keys():
-            #dummy frame to hold the playlist button and potential delete playlist button
-            self.dummyframe = tkinter.Frame()
+        for i in range(index, (index + 20 if len(self.playlists.keys()) > 20 else len(self.playlists.keys()))):
+            self.dummyframe = tkinter.Frame(self.frames["innerRight"]) #replace with list of all frames
             self.dummyframe.grid_columnconfigure(0,weight=1)
+            self.dummyframe.grid_columnconfigure(1,weight=0)
             self.dummyframe.grid_rowconfigure(0,weight=1)
-            #this is the actual playlist button
-            button = tkinter.Button(self.dummyframe,text=i,command=partial(self.loadSongsIntoFrame,self.playlists[i]))
+
+            button = tkinter.Button(self.dummyframe,text=list(self.playlists.keys())[i],command=partial(self.loadSongsIntoFrame,self.playlists[list(self.playlists.keys())[i]]))
             button.grid(row=0,column=0,sticky="nsew")
             #only allow delete button if it's not liked songs, that playlsit can't be deleted
             if button['text'] != "Liked Songs" and button['text'] != "Playing Queue":
                 self.dummyframe.grid_columnconfigure(1,weight=1)
-                deleteButton = tkinter.Button(self.dummyframe,text="Delete Playlist",command=partial(self.deletePlaylist,i))
+                deleteButton = tkinter.Button(self.dummyframe,text="Delete Playlist",command=partial(self.deletePlaylist,list(self.playlists.keys())[i]))
                 deleteButton.grid(row=0,column=1,sticky="nsew")
-            #this is to set the size of the frame correctly
+            button.grid(row=0,column=0,sticky="nsew")
             self.dummyframe.grid_propagate(0)
-            self.dummyframe["width"] =  10 ##self.text.winfo_width()
-            self.dummyframe["height"] = 10 ##self.text.winfo_height()/20
-            #this puts the frame in the correct palce on the window
-            ##self.text.window_create("end",window=self.dummyframe)
-            #self.text.insert("end", "\n")
+            self.dummyframe["width"] = self.frames["innerRight"].winfo_width()
+            #self.dummyframe.bind('<Configure>', self.fillSongs)
+            # dummyframe["width"] = self.frames["right"].winfo_width()
+            self.dummyframe["height"] = self.frames["innerRight"].winfo_height()/20
+
+            # Append the button to the songButtons array
             self.songButtons.append(button)
-        #all of this is for the add playlist button
-        self.dummyframe = tkinter.Frame()
+
+            self.dummyframe.grid(row=i,column=0)
+        self.dummyframe = tkinter.Frame(self.frames["innerRight"])
         self.dummyframe.grid_columnconfigure(0,weight=1)
         self.dummyframe.grid_rowconfigure(0,weight=1)
         button = tkinter.Button(self.dummyframe,text="New Playlist", bg="SystemButtonFace",command=partial(self.newPlaylist,self))
         button.grid(row=0,column=0,sticky="nsew")
         self.dummyframe.grid_propagate(0)
-        self.dummyframe["width"] = 10 #self.text.winfo_width()
-        self.dummyframe["height"] = 20 #self.text.winfo_height()/20
-        #self.text.window_create("end",window=self.dummyframe)
-        #self.text.insert("end", "\n")
-        self.songButtons.append(button)
-        #re disable the text box so that teh buttons can't be removed with a backspace
-        #self.text["state"] = "disabled"
+        self.dummyframe["width"] = self.frames["innerRight"].winfo_width()
+        self.dummyframe["height"] = self.frames["innerRight"].winfo_height()/20
+
+        self.dummyframe.grid(row=len(list(self.playlists.keys())),column=0)
 
     #function to delete playlists
     def deletePlaylist(self,name):
@@ -474,12 +490,28 @@ class Window(tkinter.Tk):
 
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self,songlist = [], index = 0):
+        if len(songlist) > 20:
+            self.frames["innerRight"].grid_remove()
+            self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
+            self.scrollbar.grid(row=1,column=3,sticky="nsew")
+            if len(songlist) - 20 > 100: self.scrollbar.config(to=(len(songlist) - 20)) #extra -1 to shift it down to have a 0 base
+            else: self.scrollbar.config(to=99)
+        else:
+            self.scrollbar.grid_remove()
+            self.frames["innerRight"].grid_remove()
+            self.frames["innerRight"].grid(row=1,column=0,columnspan=3,sticky="nsew")
+
+        self.scrollbar.config(command=partial(self.loadSongsIntoFrame,self.songs))
         index = int(index)
         if index == 0: self.scrollbar.set(0)
-        elif len(songlist) - 20 <= 100: index = int((index / 100) * (len(songlist) - 20))
+        elif len(songlist) - 20 <= 100: 
+            if (index / 100) * (len(songlist) - 20) < 0.5:
+                index = int((index / 100) * (len(songlist) - 20))
+            else:
+                index = int((index / 100) * (len(songlist) - 20))+1
         self.removeButtons()
         self.songButtons.clear()
-        for i in range(index, index + 20):
+        for i in range(index, (index + 20 if len(songlist) > 20 else len(songlist))):
             self.dummyframe = tkinter.Frame(self.frames["innerRight"]) #replace with list of all frames
             self.dummyframe.grid_columnconfigure(0,weight=1)
             self.dummyframe.grid_columnconfigure(1,weight=0)
@@ -496,7 +528,6 @@ class Window(tkinter.Tk):
                                     bg="white",
                                     activebackground="grey",
                                     fg="black",
-                                    width=(self.dummyframe.winfo_width()-playlistButton.winfo_width()),
                                 )
             if songlist[i] not in self.songs:
                 button["state"] = "disabled"
@@ -513,18 +544,6 @@ class Window(tkinter.Tk):
             self.songButtons.append(button)
 
             self.dummyframe.grid(row=i,column=0)
-
-
-        if len(songlist) > 20:
-            self.frames["innerRight"].grid_remove()
-            self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
-            self.scrollbar.grid(row=1,column=3,sticky="nsew")
-            if len(songlist) - 20 > 100: self.scrollbar.config(to=(len(songlist) - 20)) #extra -1 to shift it down to have a 0 base
-            else: self.scrollbar.config(to=99)
-        else:
-            self.scrollbar.grid_remove()
-            self.frames["innerRight"].grid_remove()
-            self.frames["innerRight"].grid(row=1,column=0,columnspan=3,sticky="nsew")
 
             # Ensures tabs at the top of the screen are visible
             # self.tabButtons.grid.
@@ -662,7 +681,7 @@ class Window(tkinter.Tk):
         self.volume.grid(row=1, column=5,columnspan=2,sticky="nsew",pady=2)
         self.loopButton.grid(row=0,column=5,sticky="nsew")
 
-        self.tabButtons.grid(row=0,column=0,columnspan=3,sticky="nsew")
+        self.tabButtons.grid(row=0,column=0,columnspan=4,sticky="nsew")
         self.tabButtons.grid_rowconfigure(0,weight=0)
         for i in range(len(self.tabs)):
             self.tabButtons.grid_columnconfigure(i,weight=1)
