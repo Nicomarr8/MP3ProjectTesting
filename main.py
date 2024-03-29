@@ -472,8 +472,7 @@ class Window(tkinter.Tk):
         elif len(songlist) - 20 <= 100: index = int((index / 100) * (len(songlist) - 20))
         self.removeButtons()
         self.songButtons.clear()
-        print(index,len(songlist))
-        for i in range(index, len(songlist)):
+        for i in range(index, index + 20):
             self.dummyframe = tkinter.Frame(self.frames["innerRight"]) #replace with list of all frames
             self.dummyframe.grid_columnconfigure(0,weight=1)
             self.dummyframe.grid_columnconfigure(1,weight=0)
@@ -506,15 +505,14 @@ class Window(tkinter.Tk):
             # Append the button to the songButtons array
             self.songButtons.append(button)
 
-            if len(self.songButtons) <= 20: 
-                self.dummyframe.grid(row=i,column=0)
+            self.dummyframe.grid(row=i,column=0)
 
 
-        if len(self.songButtons) > 20:
+        if len(songlist) > 20:
             self.frames["innerRight"].grid_remove()
             self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
             self.scrollbar.grid(row=1,column=3,sticky="nsew")
-            if len(self.songButtons) - 20 > 100: self.scrollbar.config(to=(len(self.songButtons) - 20 -1)) #extra -1 to shift it down to have a 0 base
+            if len(songlist) - 20 > 100: self.scrollbar.config(to=(len(songlist) - 20 -1)) #extra -1 to shift it down to have a 0 base
             else: self.scrollbar.config(to=99)
         else:
             self.scrollbar.grid_remove()
