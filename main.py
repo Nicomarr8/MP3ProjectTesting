@@ -512,7 +512,7 @@ class Window(tkinter.Tk):
             self.frames["innerRight"].grid_remove()
             self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
             self.scrollbar.grid(row=1,column=3,sticky="nsew")
-            if len(songlist) - 20 > 100: self.scrollbar.config(to=(len(songlist) - 20 -1)) #extra -1 to shift it down to have a 0 base
+            if len(songlist) - 20 > 100: self.scrollbar.config(to=(len(songlist) - 20)) #extra -1 to shift it down to have a 0 base
             else: self.scrollbar.config(to=99)
         else:
             self.scrollbar.grid_remove()
