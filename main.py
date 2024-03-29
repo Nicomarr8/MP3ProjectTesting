@@ -38,7 +38,7 @@ class Window(tkinter.Tk):
         #Configure application and file data
         self.songs = []
         self.songButtons = []
-        self.playlists = {"likedSongs":[]}
+        self.playlists = []
         self.idCounter = 0
         self.paused = True
         self.currentSong = 0
@@ -82,6 +82,8 @@ class Window(tkinter.Tk):
         self.frames["right"] = tkinter.Frame(self,bg = "#333333")
         self.frames["innerRight"] = tkinter.Frame(self.frames["right"],bg = "#333333")
         self.frames["down"] = tkinter.Frame(self,bg = "white")
+
+        self.frames["innerRight"].bind('<Configure>', self.fillSongs)
         
         #Load settings at the beginning of your program
         self.settingsLocation = os.path.join(os.getcwd(), 'settings.json')
@@ -115,8 +117,11 @@ class Window(tkinter.Tk):
 
         self.scrollbar = tkinter.Scale(self.frames["right"], from_=0, to =99, orient="vertical", showvalue=0)
         self.scrollbar.config(command=partial(self.loadSongsIntoFrame,self.songs))
+
         #album default icon
         self.canvasAlbum = tkinter.Canvas(self.frames["left"],background="#333333", bd=0, highlightthickness=0)
+        # Resizes the Album Cover upon resizing the window
+        self.canvasAlbum.bind('<Configure>', self.fillArt)
         self.genAlbumIcon(2)
         self.buttonFactor = 0.4
         #prev button
@@ -138,8 +143,8 @@ class Window(tkinter.Tk):
         self.seek.bind("<ButtonRelease-1>",self.seekTo)
         self.songQueued = {"id":None,"Title":None,"Artist":None,"Album":None,"Release":None, "Image":None, "Directory":None,"Length":0}
         self.mixer = pygame.mixer
-        self.seekUpdater = self.updateSeek(self)
-        self.seekUpdater.start()
+        # self.seekUpdater = self.updateSeek(self)
+        # self.seekUpdater.start()
         self.protocol("WM_DELETE_WINDOW",self.tidyDestroy)
         self.mixer.init()
         self.shuffle_dict = {}
@@ -178,26 +183,27 @@ class Window(tkinter.Tk):
 
             #self.ListboxRemoveOldSongs()
             # idk why these were here but they're not needed
-            # self.loadSongs()
-            # self.loadSongsIntoFrame(self.songs)
+            self.loadSongs()
+            self.loadSongsIntoFrame(self.songs)
 
-            #self.ListboxHighlightPlaying()
-            #self.Queue_listbox.selection_clear(0,tkinter.END)
-            #self.currentSong = 0
-           # self.Queue_listbox.selection_set(self.currentSong)
+            # self.ListboxHighlightPlaying()
+            # self.Queue_listbox.selection_clear(0,tkinter.END)
+            # self.currentSong = 0
+            # self.Queue_listbox.selection_set(self.currentSong)
 
         #select directory button
         tkinter.Button(self.frames["down"], text = "Select Directory", fg="white", bg="#333333", command = select_directory).grid(row=0, column=3,sticky="nsew")
         
         # refresh to put everything in place
         #this bind ensures the songs are loaded into frame at the right size
+        self.loadSongs()
         self.bind('<Visibility>',self.initLoadSongs)
         self.bind("<space>",self.pausePlay)
         self.bind("<MouseWheel>",self.scrollItems)
         self.refresh()
 
-        # Resizes the Album Cover upon resizing the window
-        self.canvasAlbum.bind('<Configure>', self.fillArt)
+        self.seekUpdater = self.updateSeek(self)
+        self.seekUpdater.start()
 
         #there should be a set directory button for the whole application
 
@@ -358,11 +364,9 @@ class Window(tkinter.Tk):
     def loadSongs(self):
         self.songs.clear()
         self.idCounter = 0
-        #filepath = input("Enter filepath")
 
         if os.path.isdir(self.directory):
             os.chdir(self.directory)
-              
             self.songs.clear()
 
             #this resets the imgs folder so that it's a fresh start
@@ -539,8 +543,8 @@ class Window(tkinter.Tk):
             self.dummyframe.grid_propagate(0)
             self.dummyframe["width"] = self.frames["innerRight"].winfo_width()
 
-            #self.dummyframe.bind('<Configure>', self.fillSongs)
-            # dummyframe["width"] = self.frames["right"].winfo_width()
+            self.dummyframe.bind('<Configure>', self.fillSongs)
+            self.dummyframe["width"] = self.frames["innerRight"].winfo_width()
             self.dummyframe["height"] = self.frames["innerRight"].winfo_height()/20
 
             # Append the button to the songButtons array
@@ -594,7 +598,7 @@ class Window(tkinter.Tk):
             self.seek.set(0)
             #displays information about the currently playing track
             self.tagInfo.config(width=20, text=self.songInfo)
-            self.scroll_text
+            # self.scroll_text()
             self.seek.config(label="00:00")
             #For Testing purposes
             #print("THE DIRECTORY IS ", self.songQueued["Directory"]) 
@@ -715,13 +719,9 @@ class Window(tkinter.Tk):
             self.canvasAlbum.config(width=width, height=height)
 
     def fillSongs(self, event):
-        width = int(self.frames["right"].winfo_width()) - self.scrollbar.winfo_width()
-        height = int(20)#self.text.winfo_height()/20)
+        width = int(event.width)
+        height = int(event.height/20)
         # print("resized buttons")
-           
-        for i in range(len(self.songButtons)):
-            self.dummyframe["width"] = width
-            self.dummyframe["height"] = height
 
     # a refresh for only the canvases (buttons and album cover)
     def refreshCanvases(self):
