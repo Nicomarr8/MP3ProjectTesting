@@ -22,8 +22,7 @@ class Window(tkinter.Tk):
             pass
         try:
             HWND = windll.user32.GetParent(self.winfo_id())
-            AppColor = 0x00332823
-            windll.dwmapi.DwmSetWindowAttribute(HWND,35,byref(c_int(AppColor)),sizeof(c_int))
+            windll.dwmapi.DwmSetWindowAttribute(HWND,35,byref(c_int(0x00332823)),sizeof(c_int))
         except:
             pass
 
@@ -37,25 +36,26 @@ class Window(tkinter.Tk):
 
         #Configure application and file data
         self.songs = []
+        self.songsInQueue = []
+        self.songsToDisplay = []
         self.songButtons = []
+        self.albumImg = None
+
         self.playlists = []
+        # self.currPlaylist = 
         self.idCounter = 0
+
         self.paused = True
-        self.currentSong = 0
-        self.likedMode = False
         self.loop = False
         self.shuffle = False
         self.scrollSpeed = 50
-        self.labelIndex = 0
-        self.songLabel = []
-        self.albumImg = None
 
         #Creates a path to the user's local Music directory
-        self.music_directory_path = os.path.join(os.path.join(os.path.expanduser ("~"), "Music"), "Pufferfish_Music")
+        self.musicDirectoryPath = os.path.join(os.path.join(os.path.expanduser ("~"), "Music"), "Pufferfish_Music")
 
         #Creates a folder in the Windows music directory
-        if not os.path.exists(self.music_directory_path): 
-            os.makedirs(self.music_directory_path)
+        if not os.path.exists(self.musicDirectoryPath): 
+            os.makedirs(self.musicDirectoryPath)
 
         # default settings dictionary
         self.DEFAULT_SETTINGS = {
@@ -103,7 +103,7 @@ class Window(tkinter.Tk):
         self.directory = self.current_settings["Directory"]
 
         if not os.path.isdir(self.directory):
-            self.directory = self.music_directory_path
+            self.directory = self.musicDirectoryPath
 
         #self.directory = self.current_settings["Directory"]
         # the above line needs to be fixed so that it loads the directory and sets it and stuff
@@ -184,6 +184,7 @@ class Window(tkinter.Tk):
             #self.ListboxRemoveOldSongs()
             # idk why these were here but they're not needed
             self.loadSongs()
+            self.loadsongs()
             self.loadSongsIntoFrame(self.songs)
 
             # self.ListboxHighlightPlaying()
@@ -497,12 +498,14 @@ class Window(tkinter.Tk):
 
     #loads songs into the right frame tkinter frame
     def loadSongsIntoFrame(self,songlist = [], index = 0):
+        # Creates a scrollbar widget if > 20 songs in program or playlist
         if len(songlist) > 20:
             self.frames["innerRight"].grid_remove()
             self.frames["innerRight"].grid(row=1,column=0,columnspan=2,sticky="nsew")
             self.scrollbar.grid(row=1,column=3,sticky="nsew")
             if len(songlist) - 20 > 100: self.scrollbar.config(to=(len(songlist) - 20)) #extra -1 to shift it down to have a 0 base
             else: self.scrollbar.config(to=99)
+        # Removes the scrollbar if < 20 songs
         else:
             self.scrollbar.grid_remove()
             self.frames["innerRight"].grid_remove()
@@ -609,11 +612,11 @@ class Window(tkinter.Tk):
             #self.loadIntoListbox()
 
     def scroll_text(self):
-        self.labelIndex += 1
+        self.idCounter += 1
         songLabel = [self.songInfo]
-        if self.labelIndex >= len(self.songInfo):
-            self.labelIndex = 0
-        self.tagInfo.config(width=20, text=songLabel[self.labelIndex:]+songLabel[:self.labelIndex])
+        if self.idCounter >= len(self.songInfo):
+            self.idCounter = 0
+        self.tagInfo.config(width=20, text=songLabel[self.idCounter:]+songLabel[:self.idCounter])
 
     # load settings from the JSON file
     def load_settings(self):
@@ -625,7 +628,6 @@ class Window(tkinter.Tk):
         except FileNotFoundError:
             print("uh-oh!")
             settings = self.DEFAULT_SETTINGS
-            # settingsFile = os.path.join (self.music_directory_path, "settings.json")
             with open(os.path.join(self.settingsLocation), 'w+') as file:
                 json.dump(self.DEFAULT_SETTINGS, file)
 
@@ -882,14 +884,14 @@ class Window(tkinter.Tk):
         if self.loop:
             self.queueSong(self.songQueued["id"])
             return
-        self.currentSong = self.songQueued
+        self.idCounter = self.songQueued
         if self.shuffle:
             id = self.songs[random.randint(0,len(self.songs)-1)]["id"]
-            while id == self.currentSong["id"]: id = self.songs[random.randint(0,len(self.songs)-1)]["id"]
+            while id == self.idCounter["id"]: id = self.songs[random.randint(0,len(self.songs)-1)]["id"]
             self.queueSong(id)
             return
         for index, song in enumerate(self.songs):
-            if song["id"]== self.currentSong["id"]:
+            if song["id"]== self.idCounter["id"]:
                 break
         #index is where the self.songQueued = the currentSong
         if direction == -1:
