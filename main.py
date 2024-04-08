@@ -184,7 +184,7 @@ class Window(tkinter.Tk):
             #self.ListboxRemoveOldSongs()
             # idk why these were here but they're not needed
             self.loadSongs()
-            self.loadsongs()
+            self.loadSongs()
             self.loadSongsIntoFrame(self.songs)
 
             # self.ListboxHighlightPlaying()
