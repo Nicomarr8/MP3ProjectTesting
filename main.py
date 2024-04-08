@@ -22,8 +22,7 @@ class Window(tkinter.Tk):
             pass
         try:
             HWND = windll.user32.GetParent(self.winfo_id())
-            AppColor = 0x00332823
-            windll.dwmapi.DwmSetWindowAttribute(HWND,35,byref(c_int(AppColor)),sizeof(c_int))
+            windll.dwmapi.DwmSetWindowAttribute(HWND,35,byref(c_int(0x00332823)),sizeof(c_int))
         except:
             pass
 
